@@ -326,6 +326,19 @@ function DistortionGenerator:generate(topleft)
 	end
 end
 
+LavaGenerator = Generator:new()
+function LavaGenerator:generate(topleft)
+	local cursor = Cursor:new({cell = topleft.cell})
+	cursor:move(0, self.height - 2)
+
+	local lava = LavaStructure:new({
+		width = self.width,
+		height = self.height,
+		palette = self.weatherPalette
+	})
+	lava:build(cursor)
+end
+
 LevelEndGenerator = Generator:new()
 function LevelEndGenerator:generate(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})

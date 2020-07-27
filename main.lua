@@ -55,11 +55,11 @@ function generateLevel(world, level)
 	local sections = math.random(8, 12)
 	local levelTable = createLevelTable(CHUNK_SIZE, sections)
 
-	-- Generate structures
+	-- Set up cursors
 	local topleft = Cursor:new({cell = levelTable[1]})
 	local cursor = Cursor:new({cell = topleft.cell})
 
-	-- Set defaults parameters for all generators used in the level
+	-- Set default parameters for all generators used in the level
 	Generator.width = CHUNK_SIZE
 	Generator.height = CHUNK_SIZE
 	Generator.groundPalette = math.random(PALETTES)
@@ -78,7 +78,8 @@ function generateLevel(world, level)
 
 	-- Add lava if this is a castle level
 	if level == LEVELS then
-
+		local lavaGenerator = LavaGenerator:new({width = CHUNK_SIZE * sections, height = CHUNK_SIZE})
+		lavaGenerator:generate(cursor)
 	end
 
 	-- Build the level
