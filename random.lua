@@ -10,7 +10,8 @@ function coinflip(weight)
 	return math.random() < weight
 end
 
--- Returns max at most, but is more likely to return something closer to max / 2.
+-- Attempts a 1 / max chance of returning 1, 2 / max chance of returning 2, etc.
+-- Most likely to return something closer to max / 2 or max / 3.
 function diminishingRandom(max)
 	if max < 1 then return max end
 	local result = 1
@@ -61,7 +62,17 @@ function shuffle(table)
 	end
 end
 
-WeightedRandomSelector = {}
+--[[
+	WeightedRandomSelector
+
+	A specialized table for random selection where each entry has a certain weight.
+	The higher the weight compared to other entries, the more likely it is to be
+	selected.
+]]
+
+WeightedRandomSelector = {
+	totalWeight = 0
+}
 
 function WeightedRandomSelector:new(o)
 	local o = o or {}
@@ -72,11 +83,20 @@ end
 
 function WeightedRandomSelector:add(value, weight)
 	local weight = weight or 1
-	for i = 1, weight do
-		table.insert(self, value)
-	end
+	table.insert(self, {
+		value = value,
+		weight = weight
+	})
+	self.totalWeight = self.totalWeight + weight
 end
 
 function WeightedRandomSelector:select()
-	return self[math.random(#self)]
+	local selected = math.random(self.totalWeight)
+	local iteratedWeight = 0
+	for i, v in ipairs(self) do
+		iteratedWeight = iteratedWeight + v.weight
+		if selected <= iteratedWeight then
+			return v.value
+		end
+	end
 end

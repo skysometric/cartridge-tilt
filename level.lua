@@ -12,10 +12,11 @@ require("tileset")
 	A cell is a single space in the level. It contains a tile ID and up to one entity,
 	as well as pointers to cells in each cardinal direction.
 
-	Tile IDs are relative to the custom tileset, and constants can be found in tileset.lua.
-	The absolute tile ID in-game is calculated based on the palette used. If the palette is
-	set to zero, the calculation is skipped and the tile ID is expected to already be absolute.
-	(This is used for anything not in the custom tileset, such as coins, ? blocks, and air.)
+	Tile IDs are relative to the custom tileset, and constants can be found in
+	tileset.lua. The absolute tile ID in-game is calculated based on the palette used.
+	If the palette is set to zero, the calculation is skipped and the tile ID is
+	expected to already be absolute. (This is used for anything not in the custom
+	tileset, such as coins, ? blocks, and air.)
 ]]
 
 Cell = {
@@ -38,21 +39,20 @@ function Cell:new(o)
 	return o
 end
 
--- Returns true if the tile in this cell has collision. Only works when using tiles
--- from the custom tileset, AKA when the palette is set; the custom tileset was
--- intentionally designed to make this easy.
+-- Returns true if the tile in this cell has collision. Only works when using a palette
+-- from the custom tileset, which was intentionally designed to make this easy.
 function Cell:solid()
 	return self.palette > 0 and self.tile <= LAST_SOLID_TILE
 end
 
--- Returns true if the tile in this cell does not have collision, and the tile
--- beneath it does. Useful logic for spawners.
+-- Returns true if the tile in this cell does not have collision, and the tile beneath it
+-- does. Useful logic for generators.
 function Cell:nonsolidAboveSolid()
 	return self.down and self.down:solid() and not self:solid()
 end
 
--- Set a custom-tileset relative tile ID and a palette for this cell.
--- Set the palette to 0 to use an absolute tile ID (and access tiles from the base tileset.)
+-- Set a custom-tileset relative tile ID and a palette for this cell. Set the palette to 0
+-- to use an absolute tile ID (and access tiles from the base tileset.)
 function Cell:setTileByPalette(tile, palette)
 	self.tile = tile
 	self.palette = palette or self.palette
@@ -76,7 +76,8 @@ end
 --[[
 	Cursor
 
-	A cursor points to a single cell, and provides functions to quickly traverse the level.
+	A cursor points to a single cell, and provides functions to quickly traverse the
+	level.
 ]]
 
 Cursor ={
@@ -106,8 +107,8 @@ function Cursor:atRightmost()
 	return not self.cell.right
 end
 
--- Moves the cursor by the number of cells specified in each direction. Positive
--- values move right and down. The cursor is bounded and will not move off the map.
+-- Moves the cursor by the number of cells specified in each direction. Positive values
+-- move right and down. The cursor is bounded and will not move off the map.
 function Cursor:move(rows, cols)
 	if rows < 0 then
 		for i = -1, rows, -1 do

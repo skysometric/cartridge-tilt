@@ -11,8 +11,8 @@ require("tileset")
 --[[
 	Structure
 
-	The base structure. Really just exists to ensure that each structure is a class
-	and has a build function.
+	The base structure. Really just exists to ensure that each structure is a class and
+	has a build function.
 ]]
 
 Structure = {
@@ -28,8 +28,8 @@ function Structure:new(o)
 	return o
 end
 
--- Given a cursor to the top left of the section, builds a structure of tiles within
--- that section. All logic is subclass-specific; the base class does nothing.
+-- Given a cursor to the top left of the section, builds a structure of tiles within that
+-- section. All logic is subclass-specific; the base class does nothing.
 function Structure:build(topleft)
 	-- Do nothing
 end
@@ -243,7 +243,8 @@ end
 	Specialized structures with some solid and nonsolid tiles.
 ]]
 
-TreetopsStructure = Structure:new({treePalette = 0, basePalette = 0, altTree = false, altBase = false})
+TreetopsStructure = Structure:new({
+	treePalette = 0, basePalette = 0, altTree = false, altBase = false})
 function TreetopsStructure:build(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})
 
@@ -304,7 +305,8 @@ function MushroomStructure:build(topleft)
 	cursor.cell:setTileByPalette(MUSHROOM_PLATFORM_RIGHT, self.mushroomPalette)
 end
 
-SkyBridgeStructure = Structure:new({basePalette = 0, ropePalette = 0, altBridge = false, blockTile = 0})
+SkyBridgeStructure = Structure:new({
+	basePalette = 0, ropePalette = 0, altBridge = false, blockTile = 0})
 function SkyBridgeStructure:build(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})
 
@@ -357,7 +359,9 @@ function CastleBridgeStructure:build(topleft)
 	end
 end
 
-FlagpoleStructure = Structure:new({width = 1, basePalette = 0, polePalette = 0, blockTile = FIRST_BLOCK_TILE, active = false})
+FlagpoleStructure = Structure:new({
+	width = 1, basePalette = 0, polePalette = 0,
+	blockTile = FIRST_BLOCK_TILE, active = false})
 function FlagpoleStructure:build(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})
 	local column = ColumnStructure:new({
@@ -395,7 +399,8 @@ function HillStructure:build(topleft)
 			elseif row <= 3 and col == 2 then
 				cursor.cell:setTileByPalette(HILL_TREES, self.palette)
 			elseif row <= 3 and col == width - 1 then
-				cursor.cell:setTileByPalette(HILL_TREES + HILL_TREES_ALT_OFFSET, self.palette)
+				cursor.cell:setTileByPalette(
+					HILL_TREES + HILL_TREES_ALT_OFFSET, self.palette)
 			elseif col == width then
 				cursor.cell:setTileByPalette(HILL_RIGHT, self.palette)
 			else
@@ -460,22 +465,27 @@ function CloudStructure:build(topleft)
 	cursor.cell.up:setTileByPalette(CLOUD_UPPER_RIGHT, self.palette)
 end
 
-TreeStructure = Structure:new({width = 1, treePalette = 0, trunkPalette = 0, altTree = false})
+TreeStructure = Structure:new({
+	width = 1, treePalette = 0, trunkPalette = 0, altTree = false})
 function TreeStructure:build(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})
 	local offset = self.altTree and BG_TREE_ALT_OFFSET or 0
 
 	for row = 1, self.height do
 		if row == 1 and row == self.height - 1 then
-			cursor.cell:setTileByPalette(SMALL_BG_TREE + offset, self.treePalette)
+			cursor.cell:setTileByPalette(
+				SMALL_BG_TREE + offset, self.treePalette)
 		elseif row == 1 then
-			cursor.cell:setTileByPalette(LARGE_BG_TREE_UPPER + offset, self.treePalette)
+			cursor.cell:setTileByPalette(
+				LARGE_BG_TREE_UPPER + offset, self.treePalette)
 		elseif row == self.height - 1 then
-			cursor.cell:setTileByPalette(LARGE_BG_TREE_LOWER + offset, self.treePalette)
+			cursor.cell:setTileByPalette(
+				LARGE_BG_TREE_LOWER + offset, self.treePalette)
 		elseif row == self.height then
 			cursor.cell:setTileByPalette(BG_TREE_BASE, self.trunkPalette)
 		else
-			cursor.cell:setTileByPalette(LARGE_BG_TREE_CENTER + offset, self.treePalette)
+			cursor.cell:setTileByPalette(
+				LARGE_BG_TREE_CENTER + offset, self.treePalette)
 		end
 		cursor:move(0, 1)
 	end

@@ -5,7 +5,6 @@ require("entities")
 require("generator")
 require("level")
 require("random")
-require("spawner")
 require("structures")
 require("tileset")
 
@@ -22,12 +21,9 @@ function main()
 	cli = Cli:new()
 	cli.helpText = 'This script randomly generates 32 glitchy-looking levels for Mari0 using a structure-based generation system.'
 	cli.defaultCallback = setDirectory
-	cli:addFlag('-d', '--directory', setDirectory,
-				'Set the directory to generate the files in')
-	cli:addFlag('-s', '--seed', function(seed) RANDOM_SEED = seed end,
-				'Set the random seed used to generate levels (defaults to "Cartridge Tilt")')
-	cli:addFlag('', '--AE', function() MODE = "AE" end,
-				'Generate levels in AE format')
+	cli:addFlag('-d', '--directory', setDirectory, 'Set the directory to generate the files in')
+	cli:addFlag('-s', '--seed', function(seed) RANDOM_SEED = seed end, 'Set the random seed used to generate levels (defaults to "Cartridge Tilt")')
+	cli:addFlag('', '--AE', function() MODE = "AE" end, 'Generate levels in AE format')
 	if cli:processArgs(arg) then return end
 
 	-- Set the seed used to generate levels
@@ -54,6 +50,8 @@ function generateLevel(world, level)
 	-- Create a blank level table
 	local sections = math.random(8, 12)
 	local levelTable = createLevelTable(CHUNK_SIZE, sections)
+	local levelWidth = CHUNK_SIZE * sections
+	local levelHeight = CHUNK_SIZE
 
 	-- Set up cursors
 	local topleft = Cursor:new({cell = levelTable[1]})
@@ -78,7 +76,10 @@ function generateLevel(world, level)
 
 	-- Add lava if this is a castle level
 	if level == LEVELS then
-		local lavaGenerator = LavaGenerator:new({width = CHUNK_SIZE * sections, height = CHUNK_SIZE})
+		local lavaGenerator = LavaGenerator:new({
+			width = levelWidth,
+			height = levelHeight
+		})
 		lavaGenerator:generate(cursor)
 	end
 
@@ -87,13 +88,27 @@ function generateLevel(world, level)
 		local baseLevel, distortions, enemies
 		if i == sections then
 			baseLevel = LevelEndGenerator:new() --level == 4 and CastleEndGenerator:new() or LevelEndGenerator:new()
-			distortions = DistortionGenerator:new({world = world, level = level, cosmetic = true})
-			enemies = Spawner:new()
+			distortions = DistortionGenerator:new({
+				world = world,
+				level = level,
+				cosmetic = true
+			})
+			enemies = Generator:new()
 		else
-			baseLevel = ChaosGenerator:new({world = world, level = level})
-			distortions = DistortionGenerator:new({world = world, level = level})
-			enemies = ChaosSpawner:new({
-				width = CHUNK_SIZE, height = CHUNK_SIZE, world = world, level = level})
+			baseLevel = ChaosGenerator:new({
+				world = world,
+				level = level
+			})
+			distortions = DistortionGenerator:new({
+				world = world,
+				level = level
+			})
+			enemies = ChaosEnemyGenerator:new({
+				width = CHUNK_SIZE,
+				height = CHUNK_SIZE,
+				world = world,
+				level = level
+			})
 		end
 
 		baseLevel:generate(cursor)
@@ -104,8 +119,11 @@ function generateLevel(world, level)
 	end
 
 	cursor.cell = topleft.cell
-	local startSpawner = StartSpawner:new({width = CHUNK_SIZE * sections, height = CHUNK_SIZE})
-	startSpawner:generate(cursor)
+	local StartGenerator = StartGenerator:new({
+		width = levelWidth,
+		height = levelHeight
+	})
+	StartGenerator:generate(cursor)
 
 	-- Write the level table to the file
 	for i, v in ipairs(levelTable) do
@@ -118,7 +136,7 @@ function generateLevel(world, level)
 
 	-- Set the height for AE mode
 	if MODE == "AE" then
-		io.write(";height=", CHUNK_SIZE)
+		io.write(";height=", levelHeight)
 	end
 
 	-- Generate the background
@@ -130,8 +148,8 @@ function generateLevel(world, level)
 	-- SE lists each color component as a separate element
 	elseif MODE == "SE" then
 		io.write(";backgroundr=", background[1],
-				 ";backgroundg=", background[2],
-				 ";backgroundb=", background[3])
+			 ";backgroundg=", background[2],
+			 ";backgroundb=", background[3])
 	-- 1.6 only had three colors to choose from: Light Blue, Dark Blue, and Black
 	else -- mode == "1.6", or there was some weird error
 		local b
@@ -166,5 +184,5 @@ function setDirectory(d)
 	return true
 end
 
--- Actually run the script
+-- Run the script
 main()

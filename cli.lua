@@ -17,10 +17,9 @@ function Cli:new(o)
 	return o
 end
 
--- Adds a new flag to the CLI parser with a shortname (such as "-d"),
--- a longname (such as "--description"), a callback function to execute,
--- and a description for the help text. The callback function should take
--- a string as its argument.
+-- Adds a new flag to the CLI parser with a shortname (such as "-d"), a longname (such as
+-- "--directory"), a callback function to execute, and a description for the help text. The
+-- callback function should take a string as its argument.
 function Cli:addFlag(shortname, longname, callback, description)
 	local data = {callback = callback, description = description}
 
@@ -33,9 +32,9 @@ function Cli:addFlag(shortname, longname, callback, description)
 	end
 end
 
--- Prints a help dialog using the CLI's help text and each argument's
--- description. Because of the way flags are stored and parsed, short-
--- and longnames are not grouped together in the resulting help text.
+-- Prints a help dialog using the CLI's help text and each argument's description. Because
+-- of the way flags are stored and parsed, short- and longnames are not grouped together in
+-- the resulting help text.
 function Cli:printHelp()
 	print(self.helpText)
 	print('Arguments:')
@@ -46,8 +45,8 @@ function Cli:printHelp()
 	return true
 end
 
--- Processes all arguments and runs callbacks as necessary. Returns true if
--- the program should exit (such as for an error or printing help text).
+-- Processes all arguments and runs callbacks as necessary. Returns true if the program
+-- should exit (such as for an error or printing help text).
 function Cli:processArgs(arg)
 	local flags = {default = {}}
 	local flag = "default"
