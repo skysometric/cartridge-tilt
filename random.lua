@@ -67,7 +67,7 @@ end
 
 	A specialized table for random selection where each entry has a certain weight.
 	The higher the weight compared to other entries, the more likely it is to be
-	selected.
+	selected. Weight is expressed as a whole number.
 ]]
 
 WeightedRandomSelector = {

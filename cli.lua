@@ -1,76 +1,112 @@
 --[[
 	cli.lua
 
-	Provides a basic command line parser.
+	Provides a basic command line parser. Supports arguments with spaces (such as file
+	names), but does not support multiple options at once (such as "-alR").
 ]]
 
 Cli = {
 	defaultCallback = nil,
-	flags = {},
-	helpText = ""
+	options = {},
+
+	helpTable = {},
+	helpText = "",
+	longestOptionLength = 0,
+	optionGroup = "",
+	usageText = ""
 }
 
 function Cli:new(o)
 	local o = o or {}
 	setmetatable(o, self)
 	self.__index = self
+	self:setOptionGroup("Arguments")
 	return o
 end
 
--- Adds a new flag to the CLI parser with a shortname (such as "-d"), a longname (such as
+-- Adds a new option to the CLI parser with a shortname (such as "-d"), a longname (such as
 -- "--directory"), a callback function to execute, and a description for the help text. The
 -- callback function should take a string as its argument.
-function Cli:addFlag(shortname, longname, callback, description)
-	local data = {callback = callback, description = description}
+function Cli:addOption(shortname, longname, callback, description)
+	local optionHelp = {}
 
 	if shortname and shortname ~= "" then
-		self.flags[shortname] = data
+		self.options[shortname] = callback
+		optionHelp.shortname = shortname
 	end
 
 	if longname and longname ~= "" then
-		self.flags[longname] = data
+		self.options[longname] = callback
+		optionHelp.longname = longname
+
+		self.longestOptionLength = math.max(
+			self.longestOptionLength, string.len(longname))
+	end
+
+	if description and description ~= "" then
+		optionHelp.description = description
+	end
+
+	table.insert(self.helpTable[self.optionGroup], optionHelp)
+end
+
+-- Group options in the help dialog
+function Cli:setOptionGroup(group)
+	self.optionGroup = group
+	if not self.helpTable[group] then
+		self.helpTable[group] = {}
 	end
 end
 
--- Prints a help dialog using the CLI's help text and each argument's description. Because
--- of the way flags are stored and parsed, short- and longnames are not grouped together in
--- the resulting help text.
+-- Prints a help dialog using the CLI's help text and each argument's description.
 function Cli:printHelp()
-	print(self.helpText)
-	print('Arguments:')
-	for i, v in pairs(self.flags) do
-		print(i, "\t", v.description)
+	print('Usage:', self.usageText, "\n")
+	print(self.helpText, "\n")
+	for name, group in pairs(self.helpTable) do
+		print(string.format("%s:", name))
+		for _, v in ipairs(group) do
+			local shortname = string.format("%4s", v.shortname or " ")
+			-- ...why doesn't lua's string.format support *??
+			local longname = string.format(
+				string.format("%%-%ds", self.longestOptionLength),
+				v.longname or " "
+			)
+			local comma = v.shortname and v.longname and "," or " "
+			print(string.format(
+				'%s%s %s\t%s', shortname, comma, longname, v.description))
+		end
 	end
 
 	return true
 end
 
 -- Processes all arguments and runs callbacks as necessary. Returns true if the program
--- should exit (such as for an error or printing help text).
+-- should exit without running (such as for an error or printing help text).
 function Cli:processArgs(arg)
-	local flags = {default = {}}
-	local flag = "default"
+	local options = {default = {}}
+	local option = "default"
 
 	for _, token in ipairs(arg) do
 		if token:find('^-') then
-			flag = token
-			flags[flag] = {}
+			option = token
+			options[option] = {}
 		else
-			table.insert(flags[flag], token)
+			table.insert(options[option], token)
 		end
 	end
 
 	local exit = false
 
-	for f, a in pairs(flags) do
+	for f, a in pairs(options) do
 		if f == "default" and self.defaultCallback then
 			exit = self.defaultCallback(table.concat(a, ' ')) or exit
 		elseif f == "-h" or f == "--help" then
 			exit = self:printHelp() or exit
-		elseif self.flags[f] then
-			exit = self.flags[f].callback(table.concat(a, ' ')) or exit
+		elseif self.options[f] then
+			local callback = self.options[f]
+			exit = callback(table.concat(a, ' ')) or exit
 		else
-			print('Unknown flag:', f)
+			print('Unknown option:', f)
 		end
 	end
 
