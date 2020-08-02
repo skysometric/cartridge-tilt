@@ -16,7 +16,15 @@ $ ./main.lua [args]
 The script accepts the following arguments:
 
 ```
--d, --directory		Set the directory to generate levels in
--s, --seed		Set the seed for the random level generator (defaults to "Cartridge Tilt")
---AE			Generate levels in Alesan's Entities format instead of 1.6 format
+Arguments:
+  -d, --directory       Set the directory to generate the files in (if not provided as the first argument)
+  -s, --seed            Set the random seed used to generate levels (defaults to "Cartridge Tilt")
+  -v, --verbosity       Set how in-depth the info printed to the console is (0-5, default 1)
+Level format:
+      --1.6             Generate levels in vanilla Mari0 1.6 format (default)
+      --AE              Generate levels in Alesan's Entities format
+Level parameters:
+  -w, --worlds          Number of worlds to generate (default 8)
+  -l, --levels          Number of levels to generate per world (default 4; other values not supported by 1.6)
+      --height          Height of levels to generate (experimental, not supported by 1.6)
 ```

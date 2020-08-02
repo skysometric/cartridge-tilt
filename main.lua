@@ -11,7 +11,7 @@ require("tileset")
 -- Global variables
 CHUNK_SIZE = 15
 DIRECTORY = ""
-MODE = "1.6"
+FORMAT = "1.6"
 RANDOM_SEED = "Cartridge Tilt"
 VERBOSITY = 1
 
@@ -19,44 +19,67 @@ WORLDS = 8
 LEVELS = 4
 
 function main()
+	-- Set up command line interface
 	cli = Cli:new()
-	cli.usageText = 'lua ./main.lua [DIRECTORY] [OPTIONS]...'
-	cli.helpText = 'This script randomly generates 32 glitchy-looking levels for Mari0 using a structure-based generation system.\nGenerated files are stored in the given DIRECTORY, overwriting existing levels there.'
+	cli.usage = 'lua ./main.lua [DIRECTORY] [OPTIONS]...'
+	cli.summary = 'Randomly generates 32 glitchy-looking levels for Mari0 using a structure-based generation system.\nGenerated files are stored in the given DIRECTORY, overwriting existing levels there.'
 	cli.defaultCallback = setDirectory
-	cli:addOption('-d', '--directory', setDirectory, 'Set the directory to generate the files in (if not provided as the first argument)')
-	cli:addOption('-s', '--seed', function(seed) RANDOM_SEED = seed end, 'Set the random seed used to generate levels (defaults to "Cartridge Tilt")')
-	cli:addOption('-v', '--verbosity', setVerbosity, 'Set how in-depth the info printed to the console is (0-5, default 1)')
 
-	-- Modes
-	cli:setOptionGroup("Modes")
-	cli:addOption(nil, '--1.6', function() MODE = "1.6" end, "Generate levels in vanilla Mari0 1.6 format")
-	cli:addOption(nil, '--AE', function() MODE = "AE" end, "Generate levels in Alesan's Entities format")
-	--cli:addOption(nil, '--SE', function() MODE = "SE" end, "Generate levels in SE/CE format")
+	-- Arguments
+	cli:addOption('-d', '--directory', setDirectory,
+		      'Set the directory to generate the files in (if not provided as the first argument)')
+	cli:addOption('-s', '--seed', function(seed) RANDOM_SEED = seed end,
+		      'Set the random seed used to generate levels (defaults to "Cartridge Tilt")')
+	cli:addOption('-v', '--verbosity', setVerbosity,
+		      'Set how in-depth the info printed to the console is (0-5, default 1)')
+
+	-- Level format
+	cli:setOptionGroup("Level format")
+	cli:addOption(nil, '--1.6', function() FORMAT = "1.6" end,
+		      "Generate levels in vanilla Mari0 1.6 format (default)")
+	cli:addOption(nil, '--AE', function() FORMAT = "AE" end,
+		      "Generate levels in Alesan's Entities format")
+	-- cli:addOption(nil, '--SE', function() FORMAT = "SE" end,
+	-- 	      "Generate levels in SE/CE format")
 
 	-- Size and number of levels
 	cli:setOptionGroup("Level parameters")
-	cli:addOption(nil, '--worlds', setWorlds, 'Number of worlds to generate (default 8)')
-	cli:addOption(nil, '--levels', setLevels, 'Number of levels to generate per world (default 4; other values not supported by 1.6)')
-	cli:addOption(nil, '--height', setHeight, 'Height of levels to generate (experimental, does not work with 1.6)')
+	cli:addOption('-w', '--worlds', setWorlds,
+		      'Number of worlds to generate (default 8)')
+	cli:addOption('-l', '--levels', setLevels,
+		      'Number of levels to generate per world (default 4; other values not supported by 1.6)')
+	cli:addOption(nil, '--height', setHeight,
+		      'Height of levels to generate (experimental, not supported by 1.6)')
 
 	-- Process command line arguments
 	if cli:processArgs(arg) then return end
 
+	-- Ensure the directory is set
+	if DIRECTORY == "" then
+		print("No directory specified.")
+		cli:printHelp()
+		return
+	end
+
 	-- Set the seed used to generate levels
 	math.randomseed(table.concat({string.byte(RANDOM_SEED, 1, string.len(RANDOM_SEED))}))
+
+	-- Prime the RNG
 	math.random()
 	math.random()
 	math.random()
 	math.random()
 
+	-- Main loop, if you can call it that
 	for world = 1, WORLDS do
 		for level = 1, LEVELS do
 			generateLevel(world, level)
 		end
 	end
 
-	print(string.format("All %d levels generated in %f seconds.",
-			    WORLDS * LEVELS, os.clock()))
+	-- Always prints regardless of verbosity level
+	print(string.format(
+		"All %d levels generated in %f seconds.", WORLDS * LEVELS, os.clock()))
 end
 
 function generateLevel(world, level)
@@ -192,7 +215,7 @@ function generateLevel(world, level)
 	end
 
 	-- Set the height for AE mode
-	if MODE == "AE" then
+	if FORMAT == "AE" then
 		io.write(";height=", levelHeight)
 	end
 
@@ -200,10 +223,10 @@ function generateLevel(world, level)
 	local background = {math.random(0, 255), math.random(0, 255), math.random(0, 255)}
 
 	-- AE combines the background colors into one element
-	if MODE == "AE" then
+	if FORMAT == "AE" then
 		io.write(";background=", table.concat(background, ","))
 	-- SE lists each color component as a separate element
-	elseif MODE == "SE" then
+	elseif FORMAT == "SE" then
 		io.write(";backgroundr=", background[1],
 			 ";backgroundg=", background[2],
 			 ";backgroundb=", background[3])
@@ -241,7 +264,6 @@ function setDirectory(d)
 		return false
 	end
 
-	print("No directory specified.")
 	return true
 end
 
