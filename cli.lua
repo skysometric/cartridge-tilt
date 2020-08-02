@@ -130,7 +130,7 @@ function Cli:processArgs(arg)
 			option = token
 			arguments[option] = ""
 		-- If the token is part of a longer argument with spaces, append it
-		elseif arguments[option] ~= "" then
+		elseif arguments[option] and arguments[option] ~= "" then
 			arguments[option] = string.format(
 				"%s %s", arguments[option], token)
 		-- If the token is an argument, set it for the currently selected option

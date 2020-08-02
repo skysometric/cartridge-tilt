@@ -137,7 +137,7 @@ function ChaosGenerator:generate(topleft)
 			VerticalPipeStructure:new({
 				height = height,
 				palette = self.plantPalette,
-				active = coinflip(0.1 * chaos)
+				active = ENEMIES and coinflip(0.1 * chaos)
 			}),
 			math.random(self.width - 2) - 1,
 			math.random(self.height - height) - 1
@@ -164,7 +164,7 @@ function ChaosGenerator:generate(topleft)
 			BlasterStructure:new({
 				height = height,
 				palette = self.blockPalette,
-				active = coinflip(0.1 * chaos)
+				active = ENEMIES and coinflip(0.1 * chaos)
 			}),
 			math.random(self.width) - 1,
 			math.random(self.height - height) - 1

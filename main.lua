@@ -15,6 +15,9 @@ FORMAT = "1.6"
 RANDOM_SEED = "Cartridge Tilt"
 VERBOSITY = 1
 
+DISTORTIONS = true
+ENEMIES = true
+
 WORLDS = 8
 LEVELS = 4
 
@@ -35,21 +38,28 @@ function main()
 
 	-- Level format
 	cli:setOptionGroup("Level format")
-	cli:addOption(nil, '--1.6', function() FORMAT = "1.6" end,
+	cli:addOption(nil, "--1.6", function() FORMAT = "1.6" end,
 		      "Generate levels in vanilla Mari0 1.6 format (default)")
-	cli:addOption(nil, '--AE', function() FORMAT = "AE" end,
+	cli:addOption(nil, "--AE", function() FORMAT = "AE" end,
 		      "Generate levels in Alesan's Entities format")
 	-- cli:addOption(nil, '--SE', function() FORMAT = "SE" end,
 	-- 	      "Generate levels in SE/CE format")
 
 	-- Size and number of levels
-	cli:setOptionGroup("Level parameters")
+	cli:setOptionGroup('Level parameters')
 	cli:addOption('-w', '--worlds', setWorlds,
 		      'Number of worlds to generate (default 8)')
 	cli:addOption('-l', '--levels', setLevels,
-		      'Number of levels to generate per world (default 4; other values not supported by 1.6)')
+		      'Number of levels to generate per world (default 4, other values not supported by 1.6)')
 	cli:addOption(nil, '--height', setHeight,
 		      'Height of levels to generate (experimental, not supported by 1.6)')
+
+	-- Generator options
+	cli:setOptionGroup('Generator options')
+	cli:addOption(nil, '--no-distortions', function() DISTORTIONS = false end,
+		      'Turn off distortions (random blocks)')
+	cli:addOption(nil, '--no-enemies', function() ENEMIES = false end,
+		      'Turn off enemies')
 
 	-- Process command line arguments
 	if cli:processArgs(arg) then return end
@@ -88,7 +98,7 @@ function generateLevel(world, level)
 	end
 
 	-- Open file for this level
-	io.output(string.format("%s/%s-%s.txt", DIRECTORY, world, level))
+	io.output(string.format("%s%s-%s.txt", DIRECTORY, world, level))
 
 	-- Create a blank level table
 	local sections = math.random(8, 12)
@@ -179,15 +189,19 @@ function generateLevel(world, level)
 		end
 		baseLevel:generate(cursor)
 
-		if VERBOSITY >= 4 then
-			print("\t\t\tGenerating enemies...")
+		if ENEMIES then
+			if VERBOSITY >= 4 then
+				print("\t\t\tGenerating enemies...")
+			end
+			enemies:generate(cursor)
 		end
-		enemies:generate(cursor)
 
-		if VERBOSITY >= 4 then
-			print("\t\t\tGenerating distortions...")
+		if DISTORTIONS then
+			if VERBOSITY >= 4 then
+				print("\t\t\tGenerating distortions...")
+			end
+			distortions:generate(cursor)
 		end
-		distortions:generate(cursor)
 
 		cursor:move(CHUNK_SIZE, 0)
 	end
@@ -206,6 +220,12 @@ function generateLevel(world, level)
 	if VERBOSITY >= 2 then
 		print("\tWriting to file...")
 	end
+
+	-- Set the height for SE mode
+	if FORMAT == "SE" then
+		io.write(levelHeight, ";")
+	end
+
 	for i, v in ipairs(levelTable) do
 		if i > 1 then
 			io.write(",", tostring(v))
@@ -261,6 +281,10 @@ end
 function setDirectory(d)
 	if d and d ~= "" then
 		DIRECTORY = d
+		-- Add trailing slash if needed
+		if string.sub(DIRECTORY, -1) ~= "/" then
+			DIRECTORY = DIRECTORY .. "/"
+		end
 		return false
 	end
 
