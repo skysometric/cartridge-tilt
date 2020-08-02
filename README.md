@@ -1,6 +1,6 @@
 # Cartridge Tilt
 
-You can either run main.lua with Lua or as an executable Bash script, like so:
+You can either run main.lua with Lua or as an executable script, like so:
 
 ```bash
 # Run with Lua
@@ -8,7 +8,7 @@ $ lua main.lua [args]
 ```
 
 ```bash
-# Run as a Bash script
+# Run as an executable script
 $ chmod +x main.lua
 $ ./main.lua [args]
 ```
