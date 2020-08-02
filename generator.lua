@@ -8,6 +8,8 @@ require("level")
 require("random")
 require("structures")
 
+local SPAWN_CELL = nil
+
 --[[
 	Generator
 
@@ -271,7 +273,7 @@ function ChaosGenerator:generate(topleft)
 			height = height,
 			palette = self.plantPalette
 		}),
-		skewedRandom(self.width, math.ceil(self.width / 2)) - 1,
+		skewedRandom(height - 1, self.width - height + 1, math.ceil(self.width / 2)) - 1,
 		self.height - height
 	}, inverseHalfChaos * 4)
 
@@ -372,6 +374,79 @@ function ChaosGenerator:generate(topleft)
 	end
 end
 
+ChaosEnemyGenerator = Generator:new({world = 0, level = 0})
+function ChaosEnemyGenerator:generate(topleft)
+	local cursor = Cursor:new({cell = topleft.cell})
+
+	-- Determine how many enemies will be placed in this section
+	local enemies = skewedRandom(self.world + 1, math.ceil(self.world / 2) + 1) - 1
+	if enemies < 1 then
+		return
+	end
+
+	-- Shuffle the columns of this section
+	local columns = {}
+	for i = 1, WORLDS do
+		columns[i] = i
+	end
+	shuffle(columns)
+
+	for i = 1, enemies do
+		-- Move the cursor to some column (from the shuffled list)
+		cursor:move(columns[i] - 1, 2)
+
+		-- Scan this column for the number of open spaces to place enemies
+		local locations = {}
+		while not cursor:atBottommost() do
+			cursor:move(0, 1)
+			if cursor.cell:nonsolidAboveSolid() then
+				table.insert(locations, cursor.cell)
+			end
+		end
+
+		-- If there are no open locations, then there is no floor
+		if #locations == 0 then
+			-- Pick a random location in the air
+			cursor:move(0, -math.random(0, self.height - 3))
+
+			-- Select enemy based on level type
+			if self.level == 2 then -- Underground/underwater
+				local enemyPalette = WeightedRandomSelector:new()
+				enemyPalette:add(CHEEPRED, 2)
+				enemyPalette:add(CHEEPWHITE, 2)
+				enemyPalette:add(SQUID, 1)
+				cursor.cell.entity = enemyPalette:select()
+			elseif self.level == LEVELS then -- Castle
+				cursor.cell.entity = UPFIRE
+			else -- Overworld
+				cursor.cell.entity = KOOPAREDFLYING
+			end
+		-- Otherwise, there is at least one position to place an enemy
+		else
+			local enemyPalette = WeightedRandomSelector:new()
+			enemyPalette:add(GOOMBA, WORLDS - self.world)
+			enemyPalette:add(KOOPA, math.ceil(WORLDS / 2))
+			enemyPalette:add(KOOPARED, math.ceil(WORLDS / 2))
+			enemyPalette:add(BEETLE, self.world)
+			enemyPalette:add(SPIKEY, math.ceil(self.world / 2))
+			-- Mix in a hammerbro if there's another platform for it to jump to
+			if #locations > 1 then
+				enemyPalette:add(HAMMERBRO, math.ceil(self.world / 2))
+			-- Mix in a koopaflying if there's enough space for it to jump around
+			else
+				enemyPalette:add(KOOPAFLYING, math.ceil(WORLDS / 2))
+			end
+
+			-- Place a randomly selected enemy in a randomly selected position
+			local location = #locations > 1 and math.random(#locations) or 1
+			locations[location].entity = enemyPalette:select()
+		end
+
+		-- Reset cursor for next enemy
+		cursor.cell = topleft.cell
+	end
+end
+
 DistortionGenerator = Generator:new({world = 1, level = 1, cosmetic = false})
 function DistortionGenerator:generate(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})
@@ -446,7 +521,12 @@ function LevelEndGenerator:generate(topleft)
 	})
 	flagpole:build(cursor)
 
-	cursor:move(0, 11)
+	for poleTile = 1, 10 do
+		cursor.cell.finish = true
+		cursor:move(0, 1)
+	end
+
+	cursor:move(0, 1)
 	local ground = RectangleStructure:new({
 		width = self.width,
 		height = 2,
@@ -464,7 +544,7 @@ function LevelEndGenerator:generate(topleft)
 end
 
 --[[
-	StartGenerator
+	SpawnGenerator
 
 	Spawns the starting location by checking for the first instance of tiles with
 	collision. Checks each column from the bottom up to find a start position on a
@@ -472,8 +552,8 @@ end
 					3, 4, 5, 2, 1
 ]]
 
-StartGenerator = Generator:new()
-function StartGenerator:generate(topleft)
+SpawnGenerator = Generator:new()
+function SpawnGenerator:generate(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})
 
 	-- Place the spawn entity and clear out all surrounding entities (such as enemies)
@@ -490,6 +570,7 @@ function StartGenerator:generate(topleft)
 			cursor.cell = topleft.cell
 		end
 		center.cell.entity = SPAWN
+		SPAWN_CELL = center.cell
 	end
 
 	-- Go from the top down in each column until we find a nonsolid tile
@@ -546,75 +627,124 @@ function StartGenerator:generate(topleft)
 	return false
 end
 
-ChaosEnemyGenerator = Generator:new({world = 0, level = 0})
-function ChaosEnemyGenerator:generate(topleft)
+--[[
+	SolutionGenerator
+
+	Walks the entire level and ensures that nothing is blocking the player from
+	reaching the exit, removing blockades as necessary. Note that this does not
+	ensure that the player can finish the level.
+]]
+
+SolutionGenerator = Generator:new()
+function SolutionGenerator:calcPath(rowstart, fromAbove, fromBelow)
+	local cursor = Cursor:new({cell = rowstart.cell})
+	local checkedAbove = fromAbove or cursor.cell.up.discovered
+	local checkedBelow = fromBelow or cursor:atBottommost()
+
+	local rows = {}
+	local row = {}
+
+	local x, y = cursor:move(0, -self.height)
+	row.score = math.abs(y + 1 - math.ceil(self.height / 2))
+	cursor.cell = rowstart.cell
+
+	-- Back up to the start of the row
+	while not cursor:atLeftmost() and cursor.cell.left:solid() do
+		cursor:move(-1, 0)
+	end
+	if cursor:atLeftmost() then return rows end
+
+	-- Walk along the row
+	while not cursor:atRightmost() do
+		table.insert(row, cursor.cell)
+		row.score = row.score + 1
+		if not checkedAbove and cursor.cell.up:solid () then
+			for _, r in pairs(self:calcPath(
+			    Cursor:new({cell = cursor.cell.up}), false, true)) do
+				table.insert(rows, r)
+			end
+			checkedAbove = true
+		end
+		if not checkedBelow and cursor.cell.down:solid () then
+			for _, r in pairs(self:calcPath(
+			     Cursor:new({cell = cursor.cell.down}), true, false)) do
+				table.insert(rows, r)
+			end
+			checkedBelow = true
+		end
+		if not cursor.cell.right:solid () or
+		   cursor.cell.up and cursor.cell.up:nonsolidAfterSolid() or
+		   cursor.cell.down and cursor.cell.down:nonsolidAfterSolid()
+		   then
+			table.insert(rows, row)
+			return rows
+		end
+		cursor:move(1, 0)
+	end
+	return rows
+end
+
+function SolutionGenerator:unblockPath(cursor)
+	local paths = self:calcPath(cursor, false, false)
+	local bestPath = {score = math.maxinteger}
+
+	for _, path in pairs(paths) do
+		if VERBOSITY >= 5 then
+			print(string.format("\t\tRow %d scored %d", path[#path].y, path.score))
+		end
+		if bestPath.score > path.score then
+			bestPath = path
+		end
+	end
+
+	for _, cell in ipairs(bestPath) do
+		cell.tile = cell.tile + LAST_SOLID_TILE
+		cursor.cell = cell
+	end
+end
+
+function SolutionGenerator:generate(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})
 
-	-- Determine how many enemies will be placed in this section
-	local enemies = skewedRandom(self.world + 1, math.ceil(self.world / 2) + 1) - 1
-	if enemies < 1 then
-		return
-	end
-
-	-- Shuffle the columns of this section
-	local columns = {}
-	for i = 1, WORLDS do
-		columns[i] = i
-	end
-	shuffle(columns)
-
-	for i = 1, enemies do
-		-- Move the cursor to some column (from the shuffled list)
-		cursor:move(columns[i] - 1, 2)
-
-		-- Scan this column for the number of open spaces to place enemies
-		local locations = {}
-		while not cursor:atBottommost() do
-			cursor:move(0, 1)
-			if cursor.cell:nonsolidAboveSolid() then
-				table.insert(locations, cursor.cell)
-			end
+	-- Block off the top two rows
+	for i = 1, 2 do
+		for i = 1, self.width do
+			cursor.cell.discovered = true
+			cursor:move(1, 0)
 		end
-
-		-- If there are no open locations, then there is no floor
-		if #locations == 0 then
-			-- Pick a random location in the air
-			cursor:move(0, -math.random(0, self.height - 3))
-
-			-- Select enemy based on level type
-			if self.level == 2 then -- Underground/underwater
-				local enemyPalette = WeightedRandomSelector:new()
-				enemyPalette:add(CHEEPRED, 2)
-				enemyPalette:add(CHEEPWHITE, 2)
-				enemyPalette:add(SQUID, 1)
-				cursor.cell.entity = enemyPalette:select()
-			elseif self.level == LEVELS then -- Castle
-				cursor.cell.entity = UPFIRE
-			else -- Overworld
-				cursor.cell.entity = KOOPAREDFLYING
-			end
-		-- Otherwise, there is at least one position to place an enemy
-		else
-			local enemyPalette = WeightedRandomSelector:new()
-			enemyPalette:add(GOOMBA, WORLDS - self.world)
-			enemyPalette:add(KOOPA, math.ceil(WORLDS / 2))
-			enemyPalette:add(KOOPARED, math.ceil(WORLDS / 2))
-			enemyPalette:add(BEETLE, self.world)
-			enemyPalette:add(SPIKEY, math.ceil(self.world / 2))
-			-- Mix in a hammerbro if there's another platform for it to jump to
-			if #locations > 1 then
-				enemyPalette:add(HAMMERBRO, math.ceil(self.world / 2))
-			-- Mix in a koopaflying if there's enough space for it to jump around
-			else
-				enemyPalette:add(KOOPAFLYING, math.ceil(WORLDS / 2))
-			end
-
-			-- Place a randomly selected enemy in a randomly selected position
-			local location = #locations > 1 and math.random(#locations) or 1
-			locations[location].entity = enemyPalette:select()
-		end
-
-		-- Reset cursor for next enemy
 		cursor.cell = topleft.cell
+		cursor:move(0, i)
+	end
+
+	cursor.cell = SPAWN_CELL
+
+	local paths = {cursor}
+	while #paths > 0 do
+		local newPaths = {}
+		for _, path in ipairs(paths) do
+			if path.cell.finish then return end
+			for _, direction in pairs({path.cell.right, path.cell.up,
+						   path.cell.down, path.cell.left}) do
+				if direction and not direction:solid() and not direction.discovered then
+					table.insert(newPaths, Cursor:new({cell = direction}))
+					direction.discovered = true
+				end
+			end
+		end
+		if #newPaths == 0 then
+			local furthestPath = paths[1]
+			if not furthestPath:atRightmost() then
+				local newPath = Cursor:new({cell = furthestPath.cell.right})
+				if newPath.cell:solid() then
+					if VERBOSITY >= 2 then
+						print(string.format("\tPlayer is blocked at %d %d, unblocking...", furthestPath.cell.x, furthestPath.cell.y))
+					end
+					self:unblockPath(newPath)
+				end
+				newPath.cell.discovered = true
+				table.insert(newPaths, newPath)
+			end
+		end
+		paths = newPaths
 	end
 end

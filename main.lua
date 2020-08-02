@@ -207,14 +207,23 @@ function generateLevel(world, level)
 	end
 
 	cursor.cell = topleft.cell
-	local StartGenerator = StartGenerator:new({
+	local spawnGenerator = SpawnGenerator:new({
 		width = levelWidth,
 		height = levelHeight
 	})
 	if VERBOSITY >= 2 then
 		print("\tFinding start position...")
 	end
-	StartGenerator:generate(cursor)
+	spawnGenerator:generate(cursor)
+
+	local solutionGenerator = SolutionGenerator:new({
+		width = levelWidth,
+		height = levelHeight
+	})
+	if VERBOSITY >= 2 then
+		print("\tEnsuring level is not blocked...")
+	end
+	solutionGenerator:generate(cursor)
 
 	-- Write the level table to the file
 	if VERBOSITY >= 2 then

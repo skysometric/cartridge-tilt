@@ -26,6 +26,10 @@ Cell = {
 	down = nil,
 	right = nil,
 
+	-- Coordinates of this cell (labels for debugging, not navigation)
+	x = 0,
+	y = 0,
+
 	-- By default the tile is blank (air) with no palette and no entity
 	tile = BLANK,
 	palette = 0,
@@ -49,6 +53,12 @@ end
 -- does. Useful logic for generators.
 function Cell:nonsolidAboveSolid()
 	return self.down and self.down:solid() and not self:solid()
+end
+
+-- Returns true if the tile in this cell does not have collision, and the tile to its left
+-- does. Useful logic for the unblocker.
+function Cell:nonsolidAfterSolid()
+	return self.left and self.left:solid() and not self:solid()
 end
 
 -- Set a custom-tileset relative tile ID and a palette for this cell. Set the palette to 0
@@ -109,25 +119,40 @@ end
 
 -- Moves the cursor by the number of cells specified in each direction. Positive values
 -- move right and down. The cursor is bounded and will not move off the map.
+-- Returns the number of cells the cursor actually moved.
 function Cursor:move(rows, cols)
+	local x, y = 0, 0
 	if rows < 0 then
 		for i = -1, rows, -1 do
-			self.cell = self.cell.left or self.cell
+			if self.cell.left then
+				self.cell = self.cell.left
+				x = x + 1
+			end
 		end
 	else
 		for i = 1, rows do
-			self.cell = self.cell.right or self.cell
+			if self.cell.right then
+				self.cell = self.cell.right
+				x = x + 1
+			end
 		end
 	end
 	if cols < 0 then
 		for i = -1, cols, -1 do
-			self.cell = self.cell.up or self.cell
+			if self.cell.up then
+				self.cell = self.cell.up
+				y = y + 1
+			end
 		end
 	else
 		for i = 1, cols do
-			self.cell = self.cell.down or self.cell
+			if self.cell.down then
+				self.cell = self.cell.down
+				y = y + 1
+			end
 		end
 	end
+	return x, y
 end
 
 --[[
@@ -159,6 +184,10 @@ function createLevelTable(size, sections)
 				newCell.up.down = newCell
 			end
 		end
+
+		-- Set coordinates
+		newCell.x = i % rowLength
+		newCell.y = math.ceil(i / rowLength)
 
 		levelTable[i] = newCell
 	end

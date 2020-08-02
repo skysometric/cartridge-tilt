@@ -11,7 +11,7 @@ function coinflip(weight)
 end
 
 -- Attempts a 1 / max chance of returning 1, 2 / max chance of returning 2, etc.
--- Most likely to return something closer to max / 2 or max / 3.
+-- Most likely to return something around max / 3, extremely unlikely to return max.
 function diminishingRandom(max)
 	if max < 1 then return max end
 	local result = 1
