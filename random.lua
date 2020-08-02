@@ -7,7 +7,7 @@
 -- Returns true or false at random.
 function coinflip(weight)
 	local weight = weight or 0.5
-	return math.random() < weight
+	return MT:random() < weight
 end
 
 -- Attempts a 1 / max chance of returning 1, 2 / max chance of returning 2, etc.
@@ -15,7 +15,7 @@ end
 function diminishingRandom(max)
 	if max < 1 then return max end
 	local result = 1
-	while math.random() > result / max do
+	while MT:random() > result / max do
 		result = result + 1
 	end
 	return result
@@ -57,7 +57,7 @@ end
 -- https://www.programming-idioms.org/idiom/10/shuffle-a-list/2019/lua
 function shuffle(table)
 	for i = #table, 2, -1 do
-		local j = math.random(i)
+		local j = MT:random(i)
 		table[i], table[j] = table[j], table[i]
 	end
 end
@@ -91,7 +91,7 @@ function WeightedRandomSelector:add(value, weight)
 end
 
 function WeightedRandomSelector:select()
-	local selected = math.random(self.totalWeight)
+	local selected = MT:random(self.totalWeight)
 	local iteratedWeight = 0
 	for i, v in ipairs(self) do
 		iteratedWeight = iteratedWeight + v.weight

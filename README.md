@@ -25,6 +25,9 @@ Level format:
       --AE              Generate levels in Alesan's Entities format
 Level parameters:
   -w, --worlds          Number of worlds to generate (default 8)
-  -l, --levels          Number of levels to generate per world (default 4; other values not supported by 1.6)
+  -l, --levels          Number of levels to generate per world (default 4, other values not supported by 1.6)
       --height          Height of levels to generate (experimental, not supported by 1.6)
+Generator options:
+      --no-distortions  Turn off distortions (random blocks)
+      --no-enemies      Turn off enemies
 ```

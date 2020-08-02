@@ -74,7 +74,7 @@ function ChaosGenerator:generate(topleft)
 
 	-- Ceiling
 	for i = 1, 2 do
-		height = math.random(5)
+		height = MT:random(5)
 		width = self.width - diminishingRandom(self.width - 10) - chaos
 		chaosTable:add({
 			RectangleStructure:new({		-- Structure & parameters
@@ -90,7 +90,7 @@ function ChaosGenerator:generate(topleft)
 
 	-- Floor
 	for i = 1, 2 do
-		height = math.random(5)
+		height = MT:random(5)
 		width = self.width - diminishingRandom(self.width - 10) - chaos
 		chaosTable:add({
 			RectangleStructure:new({
@@ -105,8 +105,8 @@ function ChaosGenerator:generate(topleft)
 	end
 
 	-- Stairs
-	width = math.random(2, 2 + halfChaos)
-	height = math.random(2, width)
+	width = MT:random(2, 2 + halfChaos)
+	height = MT:random(2, width)
 	chaosTable:add({
 		StairStructure:new({
 			width = width,
@@ -115,8 +115,8 @@ function ChaosGenerator:generate(topleft)
 			tile = self.blockTile,
 			openCorner = skewedRandom(4, halfChaos)
 		}),
-		math.random(self.width - width) - 1,
-		math.random(self.height - height) - 1
+		MT:random(self.width - width) - 1,
+		MT:random(self.height - height) - 1
 	}, WORLDS * 4)
 
 	-- Pits
@@ -127,7 +127,7 @@ function ChaosGenerator:generate(topleft)
 				palette = 0,
 				tile = BLANK
 			}),
-			math.random() - 1,
+			MT:random() - 1,
 			0
 		}, chaos)
 	end
@@ -141,8 +141,8 @@ function ChaosGenerator:generate(topleft)
 				palette = self.plantPalette,
 				active = ENEMIES and coinflip(0.1 * chaos)
 			}),
-			math.random(self.width - 2) - 1,
-			math.random(self.height - height) - 1
+			MT:random(self.width - 2) - 1,
+			MT:random(self.height - height) - 1
 		}, 5 - self.level)
 	end
 
@@ -154,42 +154,42 @@ function ChaosGenerator:generate(topleft)
 				width = width,
 				palette = self.plantPalette
 			}),
-			math.random(self.width - width) - 1,
-			math.random(self.height - 2) - 1
+			MT:random(self.width - width) - 1,
+			MT:random(self.height - 2) - 1
 		}, 5 - self.level)
 	end
 
 	-- Blasters
 	for i = 1, inverseHalfChaos do
-		height = math.random(2, math.ceil(self.height / 2) - self.level)
+		height = MT:random(2, math.ceil(self.height / 2) - self.level)
 		chaosTable:add({
 			BlasterStructure:new({
 				height = height,
 				palette = self.blockPalette,
 				active = ENEMIES and coinflip(0.1 * chaos)
 			}),
-			math.random(self.width) - 1,
-			math.random(self.height - height) - 1
+			MT:random(self.width) - 1,
+			MT:random(self.height - height) - 1
 		}, chaos * 2)
 	end
 
 	-- Cloud platforms
 	for i = 1, inverseHalfChaos do
-		width = math.random(2, math.ceil(self.width / 2) - self.level)
+		width = MT:random(2, math.ceil(self.width / 2) - self.level)
 		chaosTable:add({
 			CloudPlatformStructure:new({
 				width = width,
 				palette = self.weatherPalette
 			}),
-			math.random(self.width - width) - 1,
-			math.random(self.height) - 1
+			MT:random(self.width - width) - 1,
+			MT:random(self.height) - 1
 		}, chaos * 2)
 	end
 
 	-- Treetops platforms
 	for i = 1, halfChaos do
-		width = math.random(3, 10)
-		height = math.random(3, 10)
+		width = MT:random(3, 10)
+		height = MT:random(3, 10)
 		chaosTable:add({
 			TreetopsStructure:new({
 				width = width,
@@ -199,15 +199,15 @@ function ChaosGenerator:generate(topleft)
 				altBase = self.altTreetopBase,
 				altTree = self.altTreetop
 			}),
-			math.random(self.width - width) - 1,
+			MT:random(self.width - width) - 1,
 			self.height - height
 		}, inverseHalfChaos)
 	end
 
 	-- Mushroom platforms
 	for i = 1, inverseHalfChaos do
-		width = math.random(3, 10)
-		height = math.random(3, 10)
+		width = MT:random(3, 10)
+		height = MT:random(3, 10)
 		chaosTable:add({
 			MushroomStructure:new({
 				width = width,
@@ -215,14 +215,14 @@ function ChaosGenerator:generate(topleft)
 				basePalette = self.blockPalette,
 				mushroomPalette = self.plantPalette
 			}),
-			math.random(self.width - width) - 1,
+			MT:random(self.width - width) - 1,
 			self.height - height
 		}, halfChaos)
 	end
 
 	-- Sky bridges
 	for i = 1, inverseHalfChaos do
-		width = math.random(3, 10)
+		width = MT:random(3, 10)
 		chaosTable:add({
 			SkyBridgeStructure:new({
 				width = width,
@@ -231,23 +231,23 @@ function ChaosGenerator:generate(topleft)
 				ropePalette = self.plantPalette,
 				altBridge = self.altSkyBridge
 			}),
-			math.random(self.width - width) - 1,
-			math.random(self.height - height) - 1
+			MT:random(self.width - width) - 1,
+			MT:random(self.height - height) - 1
 		}, halfChaos)
 	end
 
 	-- Castle bridges
 	for i = 1, halfChaos do
-		width = math.random(3, 10)
-		height = math.random(width)
+		width = MT:random(3, 10)
+		height = MT:random(width)
 		chaosTable:add({
 			CastleBridgeStructure:new({
 				width = width,
 				height = height,
 				palette = self.pipePalette
 			}),
-			math.random(self.width - width) - 1,
-			math.random(self.height - height) - 1
+			MT:random(self.width - width) - 1,
+			MT:random(self.height - height) - 1
 		}, inverseHalfChaos)
 	end
 
@@ -261,13 +261,13 @@ function ChaosGenerator:generate(topleft)
 				polePalette = self.pipePalette,
 				blockTile = self.blockTile
 			}),
-			math.random(self.width) - 1,
-			math.random(self.height - height) - 1
+			MT:random(self.width) - 1,
+			MT:random(self.height - height) - 1
 		}, inverseHalfChaos * 2)
 	end
 
 	-- Hills
-	height = math.random(4, 4 + halfChaos)
+	height = MT:random(4, 4 + halfChaos)
 	chaosTable:add({
 		HillStructure:new({
 			height = height,
@@ -285,7 +285,7 @@ function ChaosGenerator:generate(topleft)
 				width = width,
 				palette = self.plantPalette
 			}),
-			math.random(self.width - width) - 1,
+			MT:random(self.width - width) - 1,
 			skewedRandom(math.ceil(self.height / 2),
 				     self.height,
 				     math.ceil(self.height * 3 / 4)) - 1
@@ -300,7 +300,7 @@ function ChaosGenerator:generate(topleft)
 				width = width,
 				palette = self.weatherPalette
 			}),
-			math.random(self.width - width) - 1,
+			MT:random(self.width - width) - 1,
 			skewedRandom(math.ceil(self.height / 2),
 				     math.ceil(self.height / 4)) - 1
 		}, (LEVELS - self.level + 1) * 2)
@@ -316,42 +316,42 @@ function ChaosGenerator:generate(topleft)
 				trunkPalette = self.blockPalette,
 				altTree = self.altTree
 			}),
-			math.random(self.width) - 1,
+			MT:random(self.width) - 1,
 			skewedRandom(self.height - height, self.height - height)
 		}, inverseChaos * 2)
 	end
 
 	-- Fences
 	for i = 1, 2 do
-		width = math.random(halfChaos + 1, chaos + 2)
+		width = MT:random(halfChaos + 1, chaos + 2)
 		chaosTable:add({
 			RowStructure:new({
 				width = width,
 				palette = self.blockPalette,
 				tile = FENCE
 			}),
-			math.random(self.width - width) - 1,
+			MT:random(self.width - width) - 1,
 			skewedRandom(self.height, math.ceil(self.height * 3 / 4)) - 1
 		}, WORLDS / 2)
 	end
 
 	-- Rows of coins
 	for i = 1, 2 do
-		width = math.random(inverseHalfChaos, inverseChaos + 1)
+		width = MT:random(inverseHalfChaos, inverseChaos + 1)
 		chaosTable:add({
 			RowStructure:new({
 				width = width,
 				palette = 0,
 				tile = COIN
 			}),
-			math.random(self.width - width) - 1,
-			math.random(self.height) - 2
+			MT:random(self.width - width) - 1,
+			MT:random(self.height) - 2
 		}, inverseChaos)
 	end
 
 	-- Groups of coins
-	height = math.random(2, 3)
-	width = math.random(inverseHalfChaos, inverseChaos + 1)
+	height = MT:random(2, 3)
+	width = MT:random(inverseHalfChaos, inverseChaos + 1)
 	chaosTable:add({
 		CheckerboardStructure:new({
 			width = width,
@@ -360,12 +360,12 @@ function ChaosGenerator:generate(topleft)
 			tile = COIN,
 			startWithTile = height % 2 ~= 0
 		}),
-		math.random(self.width - width) - 1,
-		math.random(self.height) - 2
+		MT:random(self.width - width) - 1,
+		MT:random(self.height) - 2
 	}, inverseHalfChaos)
 
 	-- Build several of the elements in a random order
-	local structuresToBuild = math.random (CHUNK_SIZE, CHUNK_SIZE + chaos * 2)
+	local structuresToBuild = MT:random (CHUNK_SIZE, CHUNK_SIZE + chaos * 2)
 	for i = 1, structuresToBuild do
 		selected = chaosTable:select()
 		cursor:move(selected[2], selected[3])
@@ -407,7 +407,7 @@ function ChaosEnemyGenerator:generate(topleft)
 		-- If there are no open locations, then there is no floor
 		if #locations == 0 then
 			-- Pick a random location in the air
-			cursor:move(0, -math.random(0, self.height - 3))
+			cursor:move(0, -MT:random(0, self.height - 3))
 
 			-- Select enemy based on level type
 			if self.level == 2 then -- Underground/underwater
@@ -438,7 +438,7 @@ function ChaosEnemyGenerator:generate(topleft)
 			end
 
 			-- Place a randomly selected enemy in a randomly selected position
-			local location = #locations > 1 and math.random(#locations) or 1
+			local location = #locations > 1 and MT:random(#locations) or 1
 			locations[location].entity = enemyPalette:select()
 		end
 
@@ -450,7 +450,7 @@ end
 DistortionGenerator = Generator:new({world = 1, level = 1, cosmetic = false})
 function DistortionGenerator:generate(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})
-	local distortions = math.random(self.world * self.level,
+	local distortions = MT:random(self.world * self.level,
 		math.ceil(CHUNK_SIZE / 4) * self.world * self.level)
 	local palettes = WeightedRandomSelector:new()
 	palettes:add(self.groundPalette)
@@ -461,7 +461,7 @@ function DistortionGenerator:generate(topleft)
 
 	for i = 1, distortions do
 		-- Move to a random cell
-		cursor:move(math.random(0, self.width), math.random(0, self.height))
+		cursor:move(MT:random(0, self.width), MT:random(0, self.height))
 
 		-- Set the range of tiles to select from. If distortions are set to
 		-- cosmetic, then the tile's collision cannot change, and the range is
@@ -477,7 +477,7 @@ function DistortionGenerator:generate(topleft)
 		-- Set the cell to a random tile (preserving palette if there is one,
 		-- or selecting a random palette as well if there is not)
 		cursor.cell:setTileByPalette(
-			math.random(minTile, maxTile),
+			MT:random(minTile, maxTile),
 			cursor.cell.palette > 0 and cursor.cell.palette or palettes:select()
 		)
 
@@ -736,7 +736,7 @@ function SolutionGenerator:generate(topleft)
 			if not furthestPath:atRightmost() then
 				local newPath = Cursor:new({cell = furthestPath.cell.right})
 				if newPath.cell:solid() then
-					if VERBOSITY >= 2 then
+					if VERBOSITY >= 3 then
 						print(string.format("\tPlayer is blocked at %d %d, unblocking...", furthestPath.cell.x, furthestPath.cell.y))
 					end
 					self:unblockPath(newPath)

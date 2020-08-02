@@ -21,6 +21,9 @@ ENEMIES = true
 WORLDS = 8
 LEVELS = 4
 
+-- RNG
+MT = require("mt/mt19937ar").new()
+
 function main()
 	-- Set up command line interface
 	cli = Cli:new()
@@ -72,13 +75,7 @@ function main()
 	end
 
 	-- Set the seed used to generate levels
-	math.randomseed(table.concat({string.byte(RANDOM_SEED, 1, string.len(RANDOM_SEED))}))
-
-	-- Prime the RNG
-	math.random()
-	math.random()
-	math.random()
-	math.random()
+	MT:randomseed(table.concat({string.byte(RANDOM_SEED, 1, string.len(RANDOM_SEED))}))
 
 	-- Main loop, if you can call it that
 	for world = 1, WORLDS do
@@ -101,7 +98,7 @@ function generateLevel(world, level)
 	io.output(string.format("%s%s-%s.txt", DIRECTORY, world, level))
 
 	-- Create a blank level table
-	local sections = math.random(8, 12)
+	local sections = MT:random(8, 12)
 	local levelTable = createLevelTable(CHUNK_SIZE, sections)
 	local levelWidth = CHUNK_SIZE * sections
 	local levelHeight = CHUNK_SIZE
@@ -113,11 +110,11 @@ function generateLevel(world, level)
 	-- Set default parameters for all generators used in the level
 	Generator.width = CHUNK_SIZE
 	Generator.height = CHUNK_SIZE
-	Generator.groundPalette = math.random(PALETTES)
-	Generator.blockPalette = math.random(PALETTES)
-	Generator.plantPalette = math.random(PALETTES)
-	Generator.pipePalette = math.random(PALETTES)
-	Generator.weatherPalette = math.random(PALETTES)
+	Generator.groundPalette = MT:random(PALETTES)
+	Generator.blockPalette = MT:random(PALETTES)
+	Generator.plantPalette = MT:random(PALETTES)
+	Generator.pipePalette = MT:random(PALETTES)
+	Generator.weatherPalette = MT:random(PALETTES)
 	if VERBOSITY >= 2 then
 		print("\tPalettes set:")
 		print(string.format("\t| %-8s | %-8s | %-8s | %-8s | %-8s |",
@@ -128,8 +125,8 @@ function generateLevel(world, level)
 		      Generator.weatherPalette))
 	end
 
-	Generator.groundTile = math.random(FIRST_GROUND_TILE, LAST_GROUND_TILE)
-	Generator.blockTile = math.random(FIRST_BLOCK_TILE, LAST_BLOCK_TILE)
+	Generator.groundTile = MT:random(FIRST_GROUND_TILE, LAST_GROUND_TILE)
+	Generator.blockTile = MT:random(FIRST_BLOCK_TILE, LAST_BLOCK_TILE)
 	Generator.altBrick = coinflip()
 	Generator.altSkyBridge = coinflip()
 	Generator.altTreetop = coinflip()
@@ -249,7 +246,7 @@ function generateLevel(world, level)
 	end
 
 	-- Generate the background
-	local background = {math.random(0, 255), math.random(0, 255), math.random(0, 255)}
+	local background = {MT:random(0, 255), MT:random(0, 255), MT:random(0, 255)}
 
 	-- AE combines the background colors into one element
 	if FORMAT == "AE" then
@@ -273,8 +270,8 @@ function generateLevel(world, level)
 	end
 
 	-- Finish the level
-	io.write(";spriteset=", math.random(4))
-	io.write(";music=", math.random(2, 6))
+	io.write(";spriteset=", MT:random(4))
+	io.write(";music=", MT:random(2, 6))
 	io.write(";timelimit=0")
 	io.write(";scrollfactor=0")
 
