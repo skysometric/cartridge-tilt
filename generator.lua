@@ -588,26 +588,27 @@ function CastleEndGenerator:generate(topleft)
 
 	cursor.cell = topleft.cell
 	cursor:move(0, 2)
-	local topWall = ColumnStructure:new({
-		height = self.height - 10,
+	local topWall = RectangleStructure:new({
+		width = 2,
+		height = self.height - 11,
 		palette = self.groundPalette,
 		tile = self.groundTile
 	})
 	topWall:build(cursor)
-	cursor:move(-1, 1)
-	topWall.height = topWall.height + 1
-	topWall.palette = 0
-	topWall.tile = BLANK
-	topWall:build(cursor)
 
-	cursor:move(0, self.height - 10)
-	cursor.cell.finish = true
-	cursor.cell.right.palette = 0
-	cursor.cell.right.tile = BLANK
+	cursor:move(-1, self.height - 11)
+	local blankSpace = RectangleStructure:new({
+		width = 3,
+		height = 3,
+		palette = 0,
+		tile = BLANK
+	})
+	blankSpace:build(cursor)
 
-	cursor:move(0, 1)
+	cursor:move(0, 3)
+	cursor.cell.up.finish = true
 	local bottomWall = RectangleStructure:new({
-		width = 2,
+		width = 3,
 		height = 6,
 		palette = self.groundPalette,
 		tile = self.groundTile
@@ -615,9 +616,9 @@ function CastleEndGenerator:generate(topleft)
 	bottomWall:build(cursor)
 
 	cursor.cell = topleft.cell
-	cursor:move(1, self.height - 2)
+	cursor:move(0, self.height - 2)
 	local floor = RectangleStructure:new({
-		width = self.width - 1,
+		width = self.width,
 		height = 2,
 		palette = self.groundPalette,
 		tile = self.groundTile
@@ -828,5 +829,9 @@ function SolutionGenerator:generate(topleft)
 			end
 		end
 		paths = newPaths
+	end
+
+	if VERBOSITY >= 1 then
+		print("Solution not found!")
 	end
 end
