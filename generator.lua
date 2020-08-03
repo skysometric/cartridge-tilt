@@ -15,7 +15,9 @@ local SPAWN_CELL = nil
 
 	The base generator. Generators act on a section of the level by selecting and
 	building structures; these may be a specific set of structures, or randomly chosen,
-	depending on the subclass's generate() function.
+	depending on the subclass's generate() function. The section of the level to act on
+	is determined by its width and height, as well as a cursor pointing to the top left
+	cell of the section.
 
 	Generators have a set of palettes and choices of tiles, but each generator may use
 	them for different things; some palettes/tiles may not be used at all. For best
@@ -57,6 +59,19 @@ end
 function Generator:generate(topleft)
 	-- Do nothing
 end
+
+--[[
+	ChaosGenerator
+
+	Decides on a bunch of potential structures to build with random locations and sizes,
+	then builds several of them in a random order. Parameters for each structure are
+	hand-tuned to some extent, but for the most part, strcutures are not built with any
+	awareness of their surroundings.
+
+	The tuning includes a concept of "chaos" based on the world and level being
+	generated (hence the name); higher chaos values mean more and larger platforms,
+	less basic terrain, and adjusted chances for each structure to be built.
+]]
 
 ChaosGenerator = Generator:new({world = 1, level = 1})
 function ChaosGenerator:generate(topleft)
@@ -206,7 +221,7 @@ function ChaosGenerator:generate(topleft)
 
 	-- Mushroom platforms
 	for i = 1, inverseHalfChaos do
-		width = MT:random(3, 10)
+		width = MT:random(4) * 2 + 1
 		height = MT:random(3, 10)
 		chaosTable:add({
 			MushroomStructure:new({
@@ -544,12 +559,79 @@ function LevelEndGenerator:generate(topleft)
 end
 
 --[[
+	CastleEndGenerator
+
+	Static generator that builds the final rooms of a castle level with Bowser and the
+	bridge. Objects are built in this section and the previous section
+]]
+
+CastleEndGenerator = Generator:new()
+function CastleEndGenerator:generate(topleft)
+	local cursor = Cursor:new({cell = topleft.cell})
+
+	cursor:move(-self.width, 2)
+	local ceiling = RowStructure:new({
+		width = self.width * 2,
+		palette = self.groundPalette,
+		tile = self.groundTile
+	})
+	ceiling:build(cursor)
+
+	cursor:move(0, self.height - 8)
+	local bridge = CastleBridgeStructure:new({
+		width = self.width - 1,
+		height = 2,
+		palette = self.pipePalette,
+		active = true
+	})
+	bridge:build(cursor)
+
+	cursor.cell = topleft.cell
+	cursor:move(0, 2)
+	local topWall = ColumnStructure:new({
+		height = self.height - 10,
+		palette = self.groundPalette,
+		tile = self.groundTile
+	})
+	topWall:build(cursor)
+	cursor:move(-1, 1)
+	topWall.height = topWall.height + 1
+	topWall.palette = 0
+	topWall.tile = BLANK
+	topWall:build(cursor)
+
+	cursor:move(0, self.height - 10)
+	cursor.cell.finish = true
+	cursor.cell.right.palette = 0
+	cursor.cell.right.tile = BLANK
+
+	cursor:move(0, 1)
+	local bottomWall = RectangleStructure:new({
+		width = 2,
+		height = 6,
+		palette = self.groundPalette,
+		tile = self.groundTile
+	})
+	bottomWall:build(cursor)
+
+	cursor.cell = topleft.cell
+	cursor:move(1, self.height - 2)
+	local floor = RectangleStructure:new({
+		width = self.width - 1,
+		height = 2,
+		palette = self.groundPalette,
+		tile = self.groundTile
+	})
+	floor:build(cursor)
+end
+
+--[[
 	SpawnGenerator
 
-	Spawns the starting location by checking for the first instance of tiles with
-	collision. Checks each column from the bottom up to find a start position on a
-	nonsolid tile over a solid tile. Prioritizes the first five columns in this order:
-					3, 4, 5, 2, 1
+	Takes the entire level as its section and places the starting location by checking
+	for the first instance of tiles with collision. Checks each column from the bottom
+	up to find a start position on a nonsolid tile over a solid tile. Prioritizes the
+	first five columns in this order: 3, 4, 5, 2, 1
 ]]
 
 SpawnGenerator = Generator:new()

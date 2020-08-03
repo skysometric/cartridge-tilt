@@ -338,7 +338,7 @@ function SkyBridgeStructure:build(topleft)
 	column:build(cursor)
 end
 
-CastleBridgeStructure = Structure:new({active = true})
+CastleBridgeStructure = Structure:new({active = false})
 function CastleBridgeStructure:build(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})
 
@@ -351,11 +351,19 @@ function CastleBridgeStructure:build(topleft)
 	cursor:move(0, self.height - 1)
 	row:build(cursor)
 
+	if self.active then
+		cursor.cell.entity = BOWSER
+	end
+
 	-- Chain
-	cursor:move(math.max(self.width - self.height, 0), -1)
-	for i = 1, math.min(self.width, self.height) do
+	cursor:move(math.max(self.width - self.height + 1, 0), -1)
+	for i = 1, math.min(self.width, self.height - 1) do
 		cursor.cell:setTileByPalette(CASTLE_BRIDGE_CHAIN, self.palette)
 		cursor:move(1, -1)
+	end
+
+	if self.active then
+		cursor.cell.entity = AXE
 	end
 end
 

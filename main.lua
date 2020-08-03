@@ -127,7 +127,13 @@ function generateLevel(world, level)
 
 	Generator.groundTile = MT:random(FIRST_GROUND_TILE, LAST_GROUND_TILE)
 	Generator.blockTile = MT:random(FIRST_BLOCK_TILE, LAST_BLOCK_TILE)
-	Generator.altBrick = coinflip()
+	if Generator.blockTile == BRICK_CENTER then
+		Generator.altBrick = false
+	elseif Generator.blockTile == BRICK_CENTER + BRICK_ALT_OFFSET then
+		Generator.altBrick = true
+	else
+		Generator.altBrick = coinflip()
+	end
 	Generator.altSkyBridge = coinflip()
 	Generator.altTreetop = coinflip()
 	Generator.altTreetopBase = coinflip()
@@ -157,7 +163,7 @@ function generateLevel(world, level)
 
 		local baseLevel, distortions, enemies
 		if i == sections then
-			baseLevel = LevelEndGenerator:new() --level == 4 and CastleEndGenerator:new() or LevelEndGenerator:new()
+			baseLevel = level == 4 and CastleEndGenerator:new() or LevelEndGenerator:new()
 			distortions = DistortionGenerator:new({
 				world = world,
 				level = level,
