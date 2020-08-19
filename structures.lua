@@ -499,7 +499,6 @@ function TreeStructure:build(topleft)
 	end
 end
 
-
 CastleStructure = Structure:new({width = 5, height = 5, altBrick = false})
 function CastleStructure:build(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})
@@ -545,4 +544,26 @@ function CastleStructure:build(topleft)
 	cursor.cell:setTileByPalette(DOOR, self.palette)
 	cursor:move(0, -1)
 	cursor.cell:setTileByPalette(CASTLE_DOORWAY + offset, self.palette)
+end
+
+--[[
+	UTILITY STRUCTURES
+
+	Structures that alter what already exists rather than building something new.
+]]
+
+NonsolidStructure = Structure:new()
+function NonsolidStructure:build(topleft)
+	local cursor = Cursor:new({cell = topleft.cell})
+
+	for row = 1, self.height do
+		for col = 1, self.width do
+			if cursor.cell:solid() then
+				cursor.cell.tile = cursor.cell.tile + LAST_SOLID_TILE
+			end
+			cursor:move(1, 0)
+		end
+		cursor.cell = topleft.cell
+		cursor:move(0, row)
+	end
 end

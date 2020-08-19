@@ -137,10 +137,9 @@ function ChaosGenerator:generate(topleft)
 	-- Pits
 	for i = 1, chaos do
 		chaosTable:add({
-			ColumnStructure:new({
-				height = self.height,
-				palette = 0,
-				tile = BLANK
+			NonsolidStructure:new({
+				width = 1,
+				height = self.height
 			}),
 			MT:random() - 1,
 			0
@@ -380,7 +379,7 @@ function ChaosGenerator:generate(topleft)
 	}, inverseHalfChaos)
 
 	-- Build several of the elements in a random order
-	local structuresToBuild = MT:random (CHUNK_SIZE, CHUNK_SIZE + chaos * 2)
+	local structuresToBuild = MT:random(CHUNK_SIZE, CHUNK_SIZE + chaos * 2)
 	for i = 1, structuresToBuild do
 		selected = chaosTable:select()
 		cursor:move(selected[2], selected[3])
@@ -519,12 +518,11 @@ function LevelEndGenerator:generate(topleft)
 	local cursor = Cursor:new({cell = topleft.cell})
 	-- Ensure that nothing can get in the way of the end of the level
 	cursor:move(1, 0)
-	local clear = RectangleStructure:new({
+	local clear = NonsolidStructure:new({
 		width = 3,
-		height = self.height,
-		tile = 1
+		height = self.height
 	})
-	clear:build(cursor, BLANK)
+	clear:build(cursor)
 
 	-- Start from the top of the flagpole
 	cursor:move(-1, self.height - 13)
@@ -548,7 +546,7 @@ function LevelEndGenerator:generate(topleft)
 		palette = self.groundPalette,
 		tile = self.groundTile
 	})
-	ground:build(cursor, self.groundTile, true)
+	ground:build(cursor)
 
 	cursor:move(4, -5)
 	local castle = CastleStructure:new({
@@ -562,7 +560,7 @@ end
 	CastleEndGenerator
 
 	Static generator that builds the final rooms of a castle level with Bowser and the
-	bridge. Objects are built in this section and the previous section
+	bridge. Some objects are also built in the previous section.
 ]]
 
 CastleEndGenerator = Generator:new()
@@ -577,9 +575,16 @@ function CastleEndGenerator:generate(topleft)
 	})
 	ceiling:build(cursor)
 
-	cursor:move(0, self.height - 8)
+	cursor:move(0, self.height - 9)
+	local bridgeSpace = NonsolidStructure:new({
+		width = self.width,
+		height = 2
+	})
+	bridgeSpace:build(cursor)
+
+	cursor:move(0, 1)
 	local bridge = CastleBridgeStructure:new({
-		width = self.width - 1,
+		width = self.width,
 		height = 2,
 		palette = self.pipePalette,
 		active = true
@@ -587,9 +592,9 @@ function CastleEndGenerator:generate(topleft)
 	bridge:build(cursor)
 
 	cursor.cell = topleft.cell
-	cursor:move(0, 2)
+	cursor:move(1, 2)
 	local topWall = RectangleStructure:new({
-		width = 2,
+		width = 1,
 		height = self.height - 11,
 		palette = self.groundPalette,
 		tile = self.groundTile
@@ -597,18 +602,16 @@ function CastleEndGenerator:generate(topleft)
 	topWall:build(cursor)
 
 	cursor:move(-1, self.height - 11)
-	local blankSpace = RectangleStructure:new({
-		width = 3,
-		height = 3,
-		palette = 0,
-		tile = BLANK
+	local axeSpace = NonsolidStructure:new({
+		width = 2,
+		height = 3
 	})
-	blankSpace:build(cursor)
+	axeSpace:build(cursor)
 
 	cursor:move(0, 3)
 	cursor.cell.up.finish = true
 	local bottomWall = RectangleStructure:new({
-		width = 3,
+		width = 2,
 		height = 6,
 		palette = self.groundPalette,
 		tile = self.groundTile
@@ -741,21 +744,21 @@ function SolutionGenerator:calcPath(rowstart, fromAbove, fromBelow)
 	while not cursor:atRightmost() do
 		table.insert(row, cursor.cell)
 		row.score = row.score + 1
-		if not checkedAbove and cursor.cell.up:solid () then
+		if not checkedAbove and cursor.cell.up:solid() then
 			for _, r in pairs(self:calcPath(
 			    Cursor:new({cell = cursor.cell.up}), false, true)) do
 				table.insert(rows, r)
 			end
 			checkedAbove = true
 		end
-		if not checkedBelow and cursor.cell.down:solid () then
+		if not checkedBelow and cursor.cell.down:solid() then
 			for _, r in pairs(self:calcPath(
 			     Cursor:new({cell = cursor.cell.down}), true, false)) do
 				table.insert(rows, r)
 			end
 			checkedBelow = true
 		end
-		if not cursor.cell.right:solid () or
+		if not cursor.cell.right:solid() or
 		   cursor.cell.up and cursor.cell.up:nonsolidAfterSolid() or
 		   cursor.cell.down and cursor.cell.down:nonsolidAfterSolid()
 		   then

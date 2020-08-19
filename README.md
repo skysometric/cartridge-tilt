@@ -8,7 +8,7 @@ $ lua main.lua [args]
 ```
 
 ```bash
-# Run as an executable script
+# Run as an executable script (UNIX only)
 $ chmod +x main.lua
 $ ./main.lua [args]
 ```

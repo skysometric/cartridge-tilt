@@ -15,8 +15,8 @@ require("tileset")
 	Tile IDs are relative to the custom tileset, and constants can be found in
 	tileset.lua. The absolute tile ID in-game is calculated based on the palette used.
 	If the palette is set to zero, the calculation is skipped and the tile ID is
-	expected to already be absolute. (This is used for anything not in the custom
-	tileset, such as coins, ? blocks, and air.)
+	expected to be absolute. (This is used for anything not in the custom tileset, such
+	as coins, ? blocks, and air.)
 ]]
 
 Cell = {
@@ -26,7 +26,7 @@ Cell = {
 	down = nil,
 	right = nil,
 
-	-- Coordinates of this cell (labels for debugging, not navigation)
+	-- Coordinates of this cell (debug labels only, NOT used for navigation)
 	x = 0,
 	y = 0,
 
@@ -90,7 +90,7 @@ end
 	level.
 ]]
 
-Cursor ={
+Cursor = {
 	cell = nil
 }
 
@@ -101,25 +101,29 @@ function Cursor:new(o)
 	return o
 end
 
+-- Checks if the cursor is at the very top of the level.
 function Cursor:atTopmost()
 	return not self.cell.up
 end
 
+-- Checks if the cursor is at the very left side of the level.
 function Cursor:atLeftmost()
 	return not self.cell.left
 end
 
+-- Checks if the cursor is at the very bottom of the level.
 function Cursor:atBottommost()
 	return not self.cell.down
 end
 
+-- Checks if the cursor is at the very right side of the level.
 function Cursor:atRightmost()
 	return not self.cell.right
 end
 
 -- Moves the cursor by the number of cells specified in each direction. Positive values
 -- move right and down. The cursor is bounded and will not move off the map.
--- Returns the number of cells the cursor actually moved.
+-- Returns the number of cells the cursor actually moved as a pair x, y.
 function Cursor:move(rows, cols)
 	local x, y = 0, 0
 	if rows < 0 then
@@ -168,13 +172,13 @@ function createLevelTable(size, sections)
 	for i = 1, rowLength * size do
 		local newCell = Cell:new()
 
-		-- Horizontal link
+		-- Horizontal link, past the first column
 		if i % rowLength ~= 1 then
 			newCell.left = levelTable[i - 1]
 			newCell.left.right = newCell
 		end
 
-		-- Vertical link
+		-- Vertical link, past the first row
 		if i > rowLength then
 			if i % rowLength == 1 then
 				newCell.up = levelTable[i - rowLength]
@@ -185,7 +189,7 @@ function createLevelTable(size, sections)
 			end
 		end
 
-		-- Set coordinates
+		-- Set coordinates (debug labels only, NOT used for navigation)
 		newCell.x = i % rowLength
 		newCell.y = math.ceil(i / rowLength)
 

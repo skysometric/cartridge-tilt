@@ -65,7 +65,10 @@ function main()
 		      'Turn off enemies')
 
 	-- Process command line arguments
-	if cli:processArgs(arg) then return end
+	local exit = cli:processArgs(arg)
+	if exit then
+		return
+	end
 
 	-- Ensure the directory is set
 	if DIRECTORY == "" then
@@ -90,6 +93,8 @@ function main()
 end
 
 function generateLevel(world, level)
+	-- SETUP
+
 	if VERBOSITY >= 1 then
 		print(string.format("Generating %d-%d...", world, level))
 	end
@@ -110,6 +115,8 @@ function generateLevel(world, level)
 	-- Set default parameters for all generators used in the level
 	Generator.width = CHUNK_SIZE
 	Generator.height = CHUNK_SIZE
+
+	-- Palettes
 	Generator.groundPalette = MT:random(PALETTES)
 	Generator.blockPalette = MT:random(PALETTES)
 	Generator.plantPalette = MT:random(PALETTES)
@@ -125,19 +132,27 @@ function generateLevel(world, level)
 		      Generator.weatherPalette))
 	end
 
+	-- Main tiles used for ground and supporting blocks
 	Generator.groundTile = MT:random(FIRST_GROUND_TILE, LAST_GROUND_TILE)
 	Generator.blockTile = MT:random(FIRST_BLOCK_TILE, LAST_BLOCK_TILE)
+
+	-- Brick style used in this level may already be determined by the supporting block
 	if Generator.blockTile == BRICK_CENTER then
 		Generator.altBrick = false
 	elseif Generator.blockTile == BRICK_CENTER + BRICK_ALT_OFFSET then
 		Generator.altBrick = true
 	else
+		-- If it wasn't, then pick a random brick style
 		Generator.altBrick = coinflip()
 	end
+
+	-- Alternate styles for various objects
 	Generator.altSkyBridge = coinflip()
 	Generator.altTreetop = coinflip()
 	Generator.altTreetopBase = coinflip()
 	Generator.altBackgroundTree = coinflip()
+
+	-- GENERATE
 
 	-- Add lava if this is a castle level
 	if level == LEVELS then
@@ -155,21 +170,25 @@ function generateLevel(world, level)
 		print("\tGenerating the level itself...")
 	end
 
-	-- Build the level
+	-- Generate the level itself, in square-shaped sections
 	for i = 1, sections do
 		if VERBOSITY >= 3 then
 			print(string.format("\t\tBuilding section %d...", i))
 		end
 
+		-- The three main generators to use in this section
 		local baseLevel, distortions, enemies
+
+		-- If this is the last section, build a flagpole/castle bridge
 		if i == sections then
-			baseLevel = level == 4 and CastleEndGenerator:new() or LevelEndGenerator:new()
+			baseLevel = level == LEVELS and CastleEndGenerator:new() or LevelEndGenerator:new()
 			distortions = DistortionGenerator:new({
 				world = world,
 				level = level,
 				cosmetic = true
 			})
 			enemies = Generator:new()
+		-- If this isn't the last section, generate chaos
 		else
 			baseLevel = ChaosGenerator:new({
 				world = world,
@@ -206,9 +225,11 @@ function generateLevel(world, level)
 			distortions:generate(cursor)
 		end
 
+		-- Move to the next section
 		cursor:move(CHUNK_SIZE, 0)
 	end
 
+	-- Find the start position
 	cursor.cell = topleft.cell
 	local spawnGenerator = SpawnGenerator:new({
 		width = levelWidth,
@@ -219,6 +240,7 @@ function generateLevel(world, level)
 	end
 	spawnGenerator:generate(cursor)
 
+	-- Make sure the level is not blocked
 	local solutionGenerator = SolutionGenerator:new({
 		width = levelWidth,
 		height = levelHeight
@@ -228,7 +250,8 @@ function generateLevel(world, level)
 	end
 	solutionGenerator:generate(cursor)
 
-	-- Write the level table to the file
+	-- OUTPUT
+
 	if VERBOSITY >= 2 then
 		print("\tWriting to file...")
 	end
@@ -238,6 +261,7 @@ function generateLevel(world, level)
 		io.write(levelHeight, ";")
 	end
 
+	-- Write the level table to the file
 	for i, v in ipairs(levelTable) do
 		if i > 1 then
 			io.write(",", tostring(v))
@@ -276,10 +300,10 @@ function generateLevel(world, level)
 	end
 
 	-- Finish the level
-	io.write(";spriteset=", MT:random(4))
-	io.write(";music=", MT:random(2, 6))
-	io.write(";timelimit=0")
-	io.write(";scrollfactor=0")
+	io.write(";spriteset=", MT:random(4))	-- Random spriteset from the game
+	io.write(";music=", MT:random(2, 6))	-- Random music options from the game
+	io.write(";timelimit=0")		-- Time is always 0
+	io.write(";scrollfactor=0")		-- Probably don't even need this
 
 	-- Save and close file
 	io.output():flush()
@@ -343,7 +367,7 @@ function setHeight(h)
 		return false
 	end
 
-	print("Height must be a number.")
+	print("Height option must be a number.")
 	return true
 end
 

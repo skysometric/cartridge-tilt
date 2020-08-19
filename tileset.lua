@@ -2,7 +2,22 @@
 	tileset.lua
 
 	Provides a list of constants to use the tileset efficiently. The tileset is laid out
-	with 88 unique tiles for each of 30 palettes.
+	with 88 unique tiles for each of 30 palettes. Each tile ID is relative to the
+	palette it's in, rather than the absolute tile ID used by the game. Converting to
+	an absolute tile ID looks like this:
+
+		last base tile ID [to get to the custom tileset] +
+		(current palette - 1) *
+			number of tiles per palette [to get to the current palette] +
+		relative tile ID
+
+	Cells in level.lua perform this calculation automatically as needed; you normally
+	shouldn't have to calculate this yourself.
+
+	Some tiles have alternate styles, which can be switched between by adding the
+	corresponding alt offset to the base tile ID:
+
+		EXAMPLE_TILE + EXAMPLE_ALT_OFFSET
 ]]
 
 -- Points to the last base tile before the custom tileset begins
@@ -18,7 +33,7 @@ TILES_PER_PALETTE = 88
 LAST_SOLID_TILE = 44
 
 --[[
-	Foreground tiles
+	Foreground tiles (solid)
 ]]
 
 -- There are eight variations of ground tiles to choose from
@@ -69,7 +84,7 @@ SKY_BRIDGE_ALT_OFFSET = 1
 CASTLE_BRIDGE = 44
 
 --[[
-	Background tiles
+	Background tiles (not solid)
 ]]
 
 TREETOPS_BASE = 45
@@ -127,7 +142,8 @@ CASTLE_ALT_OFFSET = 7
 DOOR = 82
 
 --[[
-	Tiles from the base tileset; these are not paletted
+	Tiles from the base tileset; unlike the others in this file, these are absolute
+	tile IDs. To use these in a cell from level.lua, set the palette to 0.
 ]]
 
 BLANK = 1

@@ -2,7 +2,7 @@
 	cli.lua
 
 	Provides a basic command line interface and option parser. Use "Cli:addOption()" to
-	add arguments, and "Cli:processArgs" to process them from the command line.
+	add arguments, and "Cli:processArgs()" to process them from the command line.
 
 	Supports:
 		- Short and long names for the options (such as "-d" and "--directory")
@@ -33,8 +33,8 @@ Cli = {
 	longestOptionLength = 0,
 	-- Current group that options will be added to in the help text
 	optionGroup = "",
-	-- Ordered list of option groups to print the help text, because using pairs() just
-	-- printed them in a random order every time
+	-- Ordered list of option groups to print the help text
+	-- (just using pairs() prints them in a random order every time...)
 	optionGroups = {},
 	-- Summary of what this script does, used for the help text
 	-- Ex: "This script processes arguments from the command line"
@@ -92,21 +92,28 @@ function Cli:setOptionGroup(group)
 	end
 end
 
--- Prints the help dialog using the CLI's help text and each argument's description.
+-- Prints the help dialog and returns true to signal an early exit. This is called
+-- internally by processArgs() if the user specifies -h or --help.
 function Cli:printHelp()
 	print('Usage:', self.usage, "\n")
 	print(self.summary, "\n")
+
+	-- List each group
 	for _, name in pairs(self.optionGroups) do
 		local group = self.helpTable[name]
 		print(string.format("%s:", name))
+
+		-- List options in this group
 		for _, v in ipairs(group) do
 			local shortname = string.format("%4s", v.shortname or " ")
-			-- ...why doesn't lua's string.format support *??
+			-- Double string.format here because Lua doesn't support printf's *
 			local longname = string.format(
 				string.format("%%-%ds", self.longestOptionLength),
-				v.longname or " "
-			)
+				v.longname or " ")
+			-- Separate shortname and longname with a comma, if necessary
 			local comma = v.shortname and v.longname and "," or " "
+
+			-- Print the option and its description
 			print(string.format(
 				'%s%s %s\t%s', shortname, comma, longname, v.description))
 		end
@@ -139,8 +146,10 @@ function Cli:processArgs(arg)
 		end
 	end
 
+	-- Keep track of whether to exit early
 	local exit = false
 
+	-- Process the sorted arguments with each option's callback function
 	for option, argument in pairs(arguments) do
 		-- Apply default argument
 		if option == "default" and self.defaultCallback then

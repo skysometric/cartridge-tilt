@@ -1,7 +1,8 @@
 --[[
 	entities.lua
 
-	Provides a list of constants identifying various entities in Mari0.
+	Provides a list of constants identifying various entities in Mari0; the names were
+	lifted directly from 1.6 and indexed by hand.
 ]]
 
 REMOVE = 1
