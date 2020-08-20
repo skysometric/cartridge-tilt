@@ -370,6 +370,3 @@ function setHeight(h)
 	print("Height option must be a number.")
 	return true
 end
-
--- Run the script
-main()
