@@ -1,5 +1,3 @@
-#!/usr/bin/env lua
-
 require("cli")
 require("entities")
 require("generator")
