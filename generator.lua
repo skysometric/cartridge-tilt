@@ -4,10 +4,6 @@
 	Provides logic for spawning tiles and structures in the level.
 ]]
 
-require("level")
-require("random")
-require("structures")
-
 local SPAWN_CELL = nil
 
 --[[

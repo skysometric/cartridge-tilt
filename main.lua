@@ -1,11 +1,3 @@
-require("cli")
-require("entities")
-require("generator")
-require("level")
-require("random")
-require("structures")
-require("tileset")
-
 -- Global variables
 CHUNK_SIZE = 15
 DIRECTORY = ""

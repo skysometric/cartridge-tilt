@@ -4,10 +4,6 @@
 	Provides level structures used by the generator to build maps.
 ]]
 
-require("entities")
-require("level")
-require("tileset")
-
 --[[
 	Structure
 
