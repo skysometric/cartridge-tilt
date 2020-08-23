@@ -9,8 +9,7 @@ function main()
 	{
 		for(level = 1; level <= LEVELS; ++level)
 		{
-			let leveldata = fengari.load(
-				'generateLevel(' + world + ',' + level + ')')();
+			let leveldata = await generateLevel(world, level);
 			zip.file(world + '-' + level + '.txt', leveldata);
 		}
 	}
@@ -21,4 +20,9 @@ function main()
 	}, function (err) {
 		console.log("Something went wrong trying to save the file.");
 	});
+}
+
+async function generateLevel(world, level)
+{
+	return fengari.load('return generateLevel(' + world + ',' + level + ')')();
 }
