@@ -1,3 +1,11 @@
+require("cli")
+require("entities")
+require("generator")
+require("level")
+require("random")
+require("structures")
+require("tileset")
+
 -- Global variables
 CHUNK_SIZE = 15
 DIRECTORY = ""
@@ -12,7 +20,7 @@ WORLDS = 8
 LEVELS = 4
 
 -- RNG
-MT = mt19937ar.new()
+MT = require("mt/mt19937ar").new()
 
 function main()
 	-- Set up command line interface

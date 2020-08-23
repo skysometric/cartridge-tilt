@@ -4,6 +4,8 @@
 	Provides data structures and functions used to store and manipulate a level.
 ]]
 
+require("tileset")
+
 --[[
 	Cell
 
