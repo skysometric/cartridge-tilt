@@ -1,7 +1,7 @@
 let WORLDS = 8;
 let LEVELS = 4;
 
-function main()
+async function main()
 {
 	let zip = new JSZip();
 
