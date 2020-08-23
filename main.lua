@@ -19,61 +19,58 @@ ENEMIES = true
 WORLDS = 8
 LEVELS = 4
 
--- RNG
-MT = require("mt/mt19937ar").new()
-
 function main()
-	-- Set up command line interface
-	cli = Cli:new()
-	cli.usage = 'lua ./main.lua [DIRECTORY] [OPTIONS]...'
-	cli.summary = 'Randomly generates 32 glitchy-looking levels for Mari0 using a structure-based generation system.\nGenerated files are stored in the given DIRECTORY, overwriting existing levels there.'
-	cli.defaultCallback = setDirectory
+	-- -- Set up command line interface
+	-- cli = Cli:new()
+	-- cli.usage = 'lua ./main.lua [DIRECTORY] [OPTIONS]...'
+	-- cli.summary = 'Randomly generates 32 glitchy-looking levels for Mari0 using a structure-based generation system.\nGenerated files are stored in the given DIRECTORY, overwriting existing levels there.'
+	-- cli.defaultCallback = setDirectory
 
-	-- Arguments
-	cli:addOption('-d', '--directory', setDirectory,
-		      'Set the directory to generate the files in (if not provided as the first argument)')
-	cli:addOption('-s', '--seed', function(seed) RANDOM_SEED = seed end,
-		      'Set the random seed used to generate levels (defaults to "Cartridge Tilt")')
-	cli:addOption('-v', '--verbosity', setVerbosity,
-		      'Set how in-depth the info printed to the console is (0-5, default 1)')
+	-- -- Arguments
+	-- cli:addOption('-d', '--directory', setDirectory,
+	-- 	      'Set the directory to generate the files in (if not provided as the first argument)')
+	-- cli:addOption('-s', '--seed', function(seed) RANDOM_SEED = seed end,
+	-- 	      'Set the random seed used to generate levels (defaults to "Cartridge Tilt")')
+	-- cli:addOption('-v', '--verbosity', setVerbosity,
+	-- 	      'Set how in-depth the info printed to the console is (0-5, default 1)')
 
-	-- Level format
-	cli:setOptionGroup("Level format")
-	cli:addOption(nil, "--1.6", function() FORMAT = "1.6" end,
-		      "Generate levels in vanilla Mari0 1.6 format (default)")
-	cli:addOption(nil, "--AE", function() FORMAT = "AE" end,
-		      "Generate levels in Alesan's Entities format")
-	-- cli:addOption(nil, '--SE', function() FORMAT = "SE" end,
-	-- 	      "Generate levels in SE/CE format")
+	-- -- Level format
+	-- cli:setOptionGroup("Level format")
+	-- cli:addOption(nil, "--1.6", function() FORMAT = "1.6" end,
+	-- 	      "Generate levels in vanilla Mari0 1.6 format (default)")
+	-- cli:addOption(nil, "--AE", function() FORMAT = "AE" end,
+	-- 	      "Generate levels in Alesan's Entities format")
+	-- -- cli:addOption(nil, '--SE', function() FORMAT = "SE" end,
+	-- -- 	      "Generate levels in SE/CE format")
 
-	-- Size and number of levels
-	cli:setOptionGroup('Level parameters')
-	cli:addOption('-w', '--worlds', setWorlds,
-		      'Number of worlds to generate (default 8)')
-	cli:addOption('-l', '--levels', setLevels,
-		      'Number of levels to generate per world (default 4, other values not supported by 1.6)')
-	cli:addOption(nil, '--height', setHeight,
-		      'Height of levels to generate (experimental, not supported by 1.6)')
+	-- -- Size and number of levels
+	-- cli:setOptionGroup('Level parameters')
+	-- cli:addOption('-w', '--worlds', setWorlds,
+	-- 	      'Number of worlds to generate (default 8)')
+	-- cli:addOption('-l', '--levels', setLevels,
+	-- 	      'Number of levels to generate per world (default 4, other values not supported by 1.6)')
+	-- cli:addOption(nil, '--height', setHeight,
+	-- 	      'Height of levels to generate (experimental, not supported by 1.6)')
 
-	-- Generator options
-	cli:setOptionGroup('Generator options')
-	cli:addOption(nil, '--no-distortions', function() DISTORTIONS = false end,
-		      'Turn off distortions (random blocks)')
-	cli:addOption(nil, '--no-enemies', function() ENEMIES = false end,
-		      'Turn off enemies')
+	-- -- Generator options
+	-- cli:setOptionGroup('Generator options')
+	-- cli:addOption(nil, '--no-distortions', function() DISTORTIONS = false end,
+	-- 	      'Turn off distortions (random blocks)')
+	-- cli:addOption(nil, '--no-enemies', function() ENEMIES = false end,
+	-- 	      'Turn off enemies')
 
-	-- Process command line arguments
-	local exit = cli:processArgs(arg)
-	if exit then
-		return
-	end
+	-- -- Process command line arguments
+	-- local exit = cli:processArgs(arg)
+	-- if exit then
+	-- 	return
+	-- end
 
-	-- Ensure the directory is set
-	if DIRECTORY == "" then
-		print("No directory specified.")
-		cli:printHelp()
-		return
-	end
+	-- -- Ensure the directory is set
+	-- if DIRECTORY == "" then
+	-- 	print("No directory specified.")
+	-- 	cli:printHelp()
+	-- 	return
+	-- end
 
 	-- Set the seed used to generate levels
 	MT:randomseed(table.concat({string.byte(RANDOM_SEED, 1, string.len(RANDOM_SEED))}))

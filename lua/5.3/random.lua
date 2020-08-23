@@ -4,6 +4,8 @@
 	Provides functions and classes for certain kinds of random number generation.
 ]]
 
+MT = require("mt/mt19937ar").new()
+
 -- Returns true or false at random. Accepts an optional weight between 0 and 1; higher
 -- values are more likely to return true. When no weight is given, it's a 50/50 chance.
 function coinflip(weight)
