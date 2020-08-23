@@ -275,7 +275,7 @@ function mt19937ar.new()
 		y = XOR(y, AND(SHL7(y), 0x9D2C5680) )
 		y = XOR(y, AND(SHL15(y), 0xEFC60000) )
 		y = XOR(y, SHR18(y))
-		return y
+		return y * 2
 	end
 
 	-- Floating Point Versions
