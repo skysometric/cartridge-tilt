@@ -12,7 +12,7 @@ WORLDS = 8
 LEVELS = 4
 
 -- RNG
-MT = require("mt/mt19937ar").new()
+MT = mt19937ar.new()
 
 function main()
 	-- Set up command line interface
