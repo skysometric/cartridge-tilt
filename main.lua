@@ -78,16 +78,21 @@ function main()
 	-- Set the seed used to generate levels
 	MT:randomseed(table.concat({string.byte(RANDOM_SEED, 1, string.len(RANDOM_SEED))}))
 
+	local levels = {}
+
 	-- Main loop, if you can call it that
 	for world = 1, WORLDS do
+		levels[world] = {}
 		for level = 1, LEVELS do
-			generateLevel(world, level)
+			levels[world][level] = generateLevel(world, level)
 		end
 	end
 
 	-- Always prints regardless of verbosity level
 	print(string.format(
 		"All %d levels generated in %f seconds.", WORLDS * LEVELS, os.clock()))
+
+	return levels
 end
 
 function generateLevel(world, level)
@@ -98,7 +103,8 @@ function generateLevel(world, level)
 	end
 
 	-- Open file for this level
-	io.output(string.format("%s%s-%s.txt", DIRECTORY, world, level))
+	-- io.output(string.format("%s%s-%s.txt", DIRECTORY, world, level))
+	local leveldata = ""
 
 	-- Create a blank level table
 	local sections = MT:random(8, 12)
@@ -256,21 +262,21 @@ function generateLevel(world, level)
 
 	-- Set the height for SE mode
 	if FORMAT == "SE" then
-		io.write(levelHeight, ";")
+		leveldata = string.format("%s%s%s", leveldata, levelHeight, ";")
 	end
 
 	-- Write the level table to the file
 	for i, v in ipairs(levelTable) do
 		if i > 1 then
-			io.write(",", tostring(v))
+			leveldata = string.format("%s%s%s", leveldata, ",", tostring(v))
 		else
-			io.write(tostring(v))
+			leveldata = string.format("%s%s", leveldata, tostring(v))
 		end
 	end
 
 	-- Set the height for AE mode
 	if FORMAT == "AE" then
-		io.write(";height=", levelHeight)
+		leveldata = string.format("%s%s%s", leveldata, ";height=", levelHeight)
 	end
 
 	-- Generate the background
@@ -278,10 +284,10 @@ function generateLevel(world, level)
 
 	-- AE combines the background colors into one element
 	if FORMAT == "AE" then
-		io.write(";background=", table.concat(background, ","))
+		leveldata = string.format("%s%s%s", leveldata, ";background=", table.concat(background, ","))
 	-- SE lists each color component as a separate element
 	elseif FORMAT == "SE" then
-		io.write(";backgroundr=", background[1],
+		leveldata = string.format("%s%s%s%s%s%s", leveldata, ";backgroundr=", background[1],
 			 ";backgroundg=", background[2],
 			 ";backgroundb=", background[3])
 	-- 1.6 only had three colors to choose from: Light Blue, Dark Blue, and Black
@@ -294,36 +300,38 @@ function generateLevel(world, level)
 		else
 			b = 1
 		end
-		io.write(";background=", b)
+		leveldata = string.format("%s%s%s", leveldata, ";background=", b)
 	end
 
 	-- Finish the level
-	io.write(";spriteset=", MT:random(4))	-- Random spriteset from the game
-	io.write(";music=", MT:random(2, 6))	-- Random music options from the game
-	io.write(";timelimit=0")		-- Time is always 0
-	io.write(";scrollfactor=0")		-- Probably don't even need this
+	leveldata = string.format("%s%s%s", leveldata, ";spriteset=", MT:random(4))	-- Random spriteset from the game
+	leveldata = string.format("%s%s%s", leveldata, ";music=", MT:random(2, 6))	-- Random music options from the game
+	leveldata = string.format("%s%s", leveldata, ";timelimit=0")		-- Time is always 0
+	leveldata = string.format("%s%s", leveldata, ";scrollfactor=0")		-- Probably don't even need this
 
 	-- Save and close file
-	io.output():flush()
-	io.output():close()
+	-- io.output():flush()
+	-- io.output():close()
 
 	if VERBOSITY >= 2 then
 		print(string.format("%d-%d complete.", world, level))
 	end
+
+	return leveldata
 end
 
-function setDirectory(d)
-	if d and d ~= "" then
-		DIRECTORY = d
-		-- Add trailing slash if needed
-		if string.sub(DIRECTORY, -1) ~= "/" then
-			DIRECTORY = DIRECTORY .. "/"
-		end
-		return false
-	end
+-- function setDirectory(d)
+-- 	if d and d ~= "" then
+-- 		DIRECTORY = d
+-- 		-- Add trailing slash if needed
+-- 		if string.sub(DIRECTORY, -1) ~= "/" then
+-- 			DIRECTORY = DIRECTORY .. "/"
+-- 		end
+-- 		return false
+-- 	end
 
-	return true
-end
+-- 	return true
+-- end
 
 function setVerbosity(v)
 	number = tonumber(v)
