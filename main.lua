@@ -87,6 +87,8 @@ function main()
 		end
 	end
 
+	generateSettingsFile()
+
 	-- Always prints regardless of verbosity level
 	print(string.format(
 		"All %d levels generated in %f seconds.", WORLDS * LEVELS, os.clock()))
@@ -312,6 +314,19 @@ function generateLevel(world, level)
 	if VERBOSITY >= 2 then
 		print(string.format("%d-%d complete.", world, level))
 	end
+end
+
+function generateSettingsFile()
+	if VERBOSITY >= 1 then
+		print(string.format("Generating settings file...", world, level))
+	end
+
+	io.output(string.format("%ssettings.txt", DIRECTORY))
+
+	io.write("name=cartridge tilt\n")
+	io.write("author=chaos generator\n")
+	io.write(string.format("description=seed: %s\n", RANDOM_SEED))
+	io.write("lives=0")
 end
 
 function setDirectory(d)
